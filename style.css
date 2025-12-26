@@ -485,6 +485,34 @@ footer a, footer a:visited {
 	display: block;
 }
 
+.hero-mask-rect {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	-webkit-mask-image: url(frames/rectangle-mask.png);
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: contain;
+	-webkit-mask-position: center;
+	-webkit-mask-mode: luminance;
+	mask-image: url(frames/rectangle-mask.png);
+	mask-repeat: no-repeat;
+	mask-size: contain;
+	mask-position: center;
+	mask-mode: luminance;
+	
+}
+
+.hero-mask-rect img {
+	max-width: 70%;
+	max-height: 70%;
+	width: auto;
+	height: auto;
+	display: block;
+}
+
 .hero-frame-left .frame-overlay {
 	position: absolute;
 	inset: 0;
@@ -495,12 +523,22 @@ footer a, footer a:visited {
 	pointer-events: none;
 	display: block;
 	transition: transform .5s ease-in-out;
+	
 }
 
 #frame1 {
 	position: relative;
-	left: -60%;
-	top: -50%;
+	left: -70%;
+	top: 20%;
+	transform: rotate(-1deg)!important;
+	
+}
+
+#frame2 {
+	position: relative;
+	right: -100%;
+	top: -30%;
+	transform: scale(0.7) rotate(2deg)!important;
 }
 
 /* Scroll down indicator */
@@ -761,7 +799,11 @@ footer :nth-child(odd) {
 	}
 	
 	#frame1 {
-		top: -80%;
+		top: 80%;
 		left: -30%;
+	}
+	#frame2 {
+		top: -100%;
+		right: -40%;
 	}
 }
