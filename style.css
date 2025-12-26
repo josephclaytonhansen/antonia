@@ -41,6 +41,7 @@ p, h1, h2, h3, h4, h5, h6 {
 
 p {
 	text-wrap: pretty;
+		font-size: 1.5rem;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -103,7 +104,7 @@ h1, h2, h3, h4, h5, h6 {
 	--transition-drawer: 1.3s cubic-bezier(.22, .9, .32, 1);
 	
 	/* Layout */
-	--padding-header-y: min(2vw, 35px);
+	--padding-header-y: min(2vw, 25px);
 	
 	/* Book page colors */
 	--page-bg-1-2: #fff9ec;
@@ -663,7 +664,7 @@ footer a, footer a:visited {
 .new-content-section {
 	min-height: 100vh;
 	padding: 6rem 2rem 4rem;
-	background: linear-gradient(180deg, var(--color-dark-bg) 0%, #0d0a08 100%);
+	background: linear-gradient(transparent 0, var(--color-dark-text) 120%);
 	color: var(--color-light-text);
 	display: flex;
 	flex-direction: column;
@@ -691,9 +692,8 @@ footer a, footer a:visited {
 
 .new-content-section p {
 	font-family: var(--font-text-secondary);
-	font-size: 1.5rem;
-	max-width: 800px;
-	line-height: 1.8;
+	max-width: min(80vw, 800px);
+
 }
 
 /* ============================================
@@ -710,7 +710,8 @@ footer {
 	background-color: var(--color-footer-bg);
 	width: 100vw;
 	overflow: hidden;
-	position: relative;
+	position: absolute;
+	bottom: 0;
 	z-index: 10;
 }
 

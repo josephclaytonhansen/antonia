@@ -120,6 +120,11 @@ $(function () {
                         hero.style.opacity = '1';
                     }
 
+                    const headerh1 = document.querySelector('main header h1') || document.querySelector('header h1') || document.querySelector('main h1');
+                    if (headerh1) {
+                        headerh1.style.fontSize = `min(10vw, 5rem)`;
+                    }
+
                     // New content off-screen below
                     if (newContent) {
                         newContent.style.transform = 'translateY(100vh)';
@@ -135,8 +140,15 @@ $(function () {
                     const stage2Progress = (scrollTop - stage2Start) / (stage2End - stage2Start);
                     const eased = easeInOutCubic(stage2Progress);
 
+
+
                     // Keep book fully open
                     updateFromProgress(1);
+
+                    const headerh1 = document.querySelector('main header h1') || document.querySelector('header h1') || document.querySelector('main h1');
+                    if (headerh1) {
+                        headerh1.style.fontSize = `min(6vw, 3rem)`;
+                    }
 
                     // Move hero up and fade out
                     if (hero) {
