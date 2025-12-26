@@ -4,9 +4,10 @@ $(function () {
     const $heroframes = $pages.find('.hero-frame-left, .hero-frame-right');
     const scrolldownEl = document.getElementById('scrolldown');
     const spacer = document.querySelector('.page-scroll-spacer');
+    const hero = document.querySelector('.hero');
+    const newContent = document.querySelector('.new-content-section');
+
     let ticking = false;
-    let prevRawProgress = 0;
-    let isReleased = false;
 
     const parseFraction = (v) => {
         if (v == null) return null;
@@ -15,7 +16,6 @@ $(function () {
         const isPercent = s.endsWith('%');
         const num = parseFloat(isPercent ? s.slice(0, -1) : s);
         if (isNaN(num)) return null;
-
         const result = isPercent || num > 1 ? num / 100 : num;
         return Math.max(0, Math.min(1, result));
     };
@@ -30,12 +30,9 @@ $(function () {
         try {
             ancestor = $book[0]?.closest('[data-open-start],[data-start],[data-open-end],[data-end],[data-open-boost],[data-open-smoothing],[data-open-easing]');
         } catch (e) { }
-
         const elements = [spacer, ancestor, $book[0]];
-
         for (const key of Array.isArray(keys) ? keys : [keys]) {
             const camelKey = key.replace(/-(\w)/g, (_, c) => c.toUpperCase());
-
             for (const el of elements) {
                 const value = el?.dataset?.[camelKey];
                 if (value != null) return value;
@@ -51,6 +48,7 @@ $(function () {
     const configuredBoostRight = rightParsed ?? maybeSingleBoost ?? 20;
 
     const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+    const easeInOutCubic = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 
     const parsedOverrun = parseFloat(getData(['openOverrun', 'openoverrun']));
     const overrun = (!isNaN(parsedOverrun) && parsedOverrun >= 0) ? Math.min(0.2, parsedOverrun) : 0.03;
@@ -64,7 +62,6 @@ $(function () {
 
     function updateFromProgress(e) {
         e = Math.max(0, Math.min(1, e));
-
         try { $book[0]?.style.setProperty('--book-turn', e); } catch (err) { }
 
         const spineOpacity = Math.max(0, Math.min(1, (e - 0.05) / 0.95));
@@ -84,35 +81,14 @@ $(function () {
                 const boostToUse = rightSideSelectors.includes(sel) ? configuredBoostRight : configuredBoostLeft;
                 const ang = (angle + boostToUse) * e;
                 let transform = `rotateY(${ang}deg) scale(${scale})`;
-
                 if (sel === '.back') {
                     transform += ` translateX(${-backShift}px)`;
                 } else {
                     $el.css('box-shadow', `0 1em 3em 0 rgba(0,0,0,${shadowAlpha})`);
                 }
-
                 $el.css('transform', transform);
             }
         });
-    }
-
-    function computeProgress() {
-        const scrollTop = window.scrollY || document.documentElement.scrollTop;
-        const viewH = window.innerHeight || document.documentElement.clientHeight;
-
-        if (spacer instanceof Element) {
-            const spacerTop = spacer.offsetTop;
-            const spacerHeight = spacer.offsetHeight || 1;
-
-            const start = spacerTop - viewH;
-            const end = spacerTop + spacerHeight;
-            const denom = (end - start) || 1;
-            const v = (scrollTop - start) / denom;
-            return Math.max(0, Math.min(1, v));
-        }
-
-        const max = Math.max(1, document.documentElement.scrollHeight - viewH);
-        return Math.max(0, Math.min(1, scrollTop / max));
     }
 
     function onScroll() {
@@ -121,32 +97,81 @@ $(function () {
 
         requestAnimationFrame(() => {
             try {
-                const mainEl = document.querySelector('main');
-                const rawNow = computeProgress();
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                const viewH = window.innerHeight || document.documentElement.clientHeight;
 
-                // TWO STATE SYSTEM
-                if (!isReleased && rawNow >= 1.0) {
-                    isReleased = true;
-                    mainEl.classList.add('main--released');
-                    updateFromProgress(1);
-                } else if (isReleased && rawNow <= 0.98) {
-                    isReleased = false;
-                    mainEl.classList.remove('main--released');
-                    prevRawProgress = rawNow;
-                }
+                // Stage 1: Book opening (0 to viewH*4)
+                const stage1End = viewH * 4;
+                // Stage 2: Scroll away (viewH*6 to viewH*8) - starts 2vh after book opens
+                const stage2Start = viewH * 6;
+                const stage2End = viewH * 8;
 
-                // Update book when not released
-                if (!isReleased) {
-                    const effectiveRaw = Math.min(1, rawNow + overrun * (1 - rawNow));
+                if (scrollTop < stage1End) {
+                    // STAGE 1: Book opening animation
+                    // Map scroll to 0-1 range, but complete the animation earlier (at 70% of stage1End)
+                    const bookProgress = Math.min(1, scrollTop / (stage1End * 0.7));
+                    const effectiveRaw = Math.min(1, bookProgress + overrun * (1 - bookProgress));
                     const eased = easeOutCubic(effectiveRaw);
                     updateFromProgress(eased);
-                    
+
+                    // Hero stays in place
+                    if (hero) {
+                        hero.style.transform = 'translateY(0)';
+                        hero.style.opacity = '1';
+                    }
+
+                    // New content off-screen below
+                    if (newContent) {
+                        newContent.style.transform = 'translateY(100vh)';
+                        newContent.style.opacity = '0';
+                    }
+
                     if (scrolldownEl) {
                         scrolldownEl.style.opacity = String(0.5 * (1 - eased));
                     }
-                    prevRawProgress = rawNow;
-                } else {
+
+                } else if (scrollTop >= stage2Start && scrollTop < stage2End) {
+                    // STAGE 2: Scroll away + new content reveal
+                    const stage2Progress = (scrollTop - stage2Start) / (stage2End - stage2Start);
+                    const eased = easeInOutCubic(stage2Progress);
+
+                    // Keep book fully open
                     updateFromProgress(1);
+
+                    // Move hero up and fade out
+                    if (hero) {
+                        const heroY = -100 * eased;
+                        const heroOpacity = 1 - eased;
+                        hero.style.transform = `translateY(${heroY}vh)`;
+                        hero.style.opacity = String(heroOpacity);
+                    }
+
+                    // Move new content up from below
+                    if (newContent) {
+                        const contentY = 100 - (100 * eased);
+                        const contentOpacity = eased;
+                        newContent.style.transform = `translateY(${contentY}vh)`;
+                        newContent.style.opacity = String(contentOpacity);
+                    }
+
+                    if (scrolldownEl) {
+                        scrolldownEl.style.opacity = '0';
+                    }
+
+                } else if (scrollTop >= stage2End) {
+                    // STAGE 3: New content fully visible
+                    updateFromProgress(1);
+
+                    if (hero) {
+                        hero.style.transform = 'translateY(-100vh)';
+                        hero.style.opacity = '0';
+                    }
+
+                    if (newContent) {
+                        newContent.style.transform = 'translateY(0)';
+                        newContent.style.opacity = '1';
+                    }
+
                     if (scrolldownEl) {
                         scrolldownEl.style.opacity = '0';
                     }
@@ -154,17 +179,26 @@ $(function () {
 
                 ticking = false;
             } catch (err) {
+                console.error('Scroll error:', err);
                 ticking = false;
             }
         });
     }
 
+    // Initial state
     updateFromProgress(0);
     if (scrolldownEl) scrolldownEl.style.opacity = String(0.5);
+    if (hero) {
+        hero.style.transform = 'translateY(0)';
+        hero.style.opacity = '1';
+    }
+    if (newContent) {
+        newContent.style.transform = 'translateY(100vh)';
+        newContent.style.opacity = '0';
+    }
 
     function disableCssHoverOpening() {
         if (window.matchMedia?.('(hover: none)').matches) return;
-
         try {
             $book.css('pointer-events', 'none');
             $book.find('.front, .page1, .page2, .page3, .page4, .page5, .page6, .back').css('pointer-events', 'auto');
@@ -173,10 +207,13 @@ $(function () {
     disableCssHoverOpening();
 
     function ensureSpacer() {
-        if (spacer) spacer.style.height = '300vh';
+        if (spacer) spacer.style.height = '900vh'; // Enough for all stages
     }
     ensureSpacer();
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
+
+    // Initial render
+    onScroll();
 });

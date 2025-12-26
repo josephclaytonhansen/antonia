@@ -210,25 +210,12 @@ body::before {
    ============================================ */
 
 main {
-	position: fixed;
-	inset: 0;
-	width: 100vw;
-	height: 100vh;
-	display: flex;
-	flex-direction: column;
-	align-items: stretch;
-	justify-content: flex-start;
-	overflow: hidden;
+	position: relative;
+	width: 100%;
+	min-height: 100vh;
 }
 
-
-.main--released {
-	position: static !important;
-	inset: auto !important;
-	width: 100% !important;
-	height: auto !important;
-	overflow: visible !important;
-}
+/* Remove the main--released class - not needed anymore */
 
 /* ============================================
    HEADER
@@ -243,6 +230,12 @@ header {
 	background-color: var(--color-dark-bg);
 	box-shadow: 0 0 30px #1c1c1c4d;
 	overflow: hidden;
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 10001;
+	width: 100%;
 }
 
 .header-left, .header-right {
@@ -428,11 +421,17 @@ footer a, footer a:visited {
    ============================================ */
 
 .hero {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
 	display: flex;
-	flex: 1 1 auto;
 	align-items: center;
 	justify-content: center;
 	pointer-events: none;
+	z-index: 100;
+	will-change: transform, opacity;
 }
 
 .hero > * {
@@ -658,6 +657,46 @@ footer a, footer a:visited {
 }
 
 /* ============================================
+   NEW CONTENT SECTION
+   ============================================ */
+
+.new-content-section {
+	min-height: 100vh;
+	padding: 6rem 2rem 4rem;
+	background: linear-gradient(180deg, var(--color-dark-bg) 0%, #0d0a08 100%);
+	color: var(--color-light-text);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 50;
+	will-change: transform, opacity;
+}
+
+.new-content-section h2 {
+	font-family: var(--font-heading-main);
+	font-size: 3rem;
+	margin-bottom: 2rem;
+	background: linear-gradient(90deg, var(--color-light-text) 0%, var(--color-light-text-translucent) 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.new-content-section p {
+	font-family: var(--font-text-secondary);
+	font-size: 1.5rem;
+	max-width: 800px;
+	line-height: 1.8;
+}
+
+/* ============================================
    FOOTER
    ============================================ */
 
@@ -669,10 +708,10 @@ footer {
 	text-align: center;
 	padding: 10px 0;
 	background-color: var(--color-footer-bg);
-	position: absolute;
-	bottom: 0;
 	width: 100vw;
 	overflow: hidden;
+	position: relative;
+	z-index: 10;
 }
 
 footer h3 {
