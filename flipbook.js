@@ -225,6 +225,13 @@ $(function () {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
+    (function revealNewContent() {
+        const el = document.getElementById('newContent') || document.querySelector('.new-content-section');
+        if (el) {
+            el.removeAttribute('hidden');
+            el.style.setProperty('display', 'flex', 'important');
+        }
+    })();
 
     // Initial render
     onScroll();
