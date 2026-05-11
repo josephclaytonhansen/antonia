@@ -1,4 +1,5 @@
 <?php
+
 /**
  * front-page.php
  *
@@ -13,10 +14,10 @@ get_header();
 
 	<!-- ── Corner sketch decorations (homepage only) ─────────────────────── -->
 	<div class="corner-sketches">
-		<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/1.webp' ); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
-		<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/1.webp' ); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
-		<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/3.webp' ); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
-		<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/3.webp' ); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
+		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
+		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
+		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
+		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
 	</div>
 
 	<!-- ── Hero ──────────────────────────────────────────────────────────── -->
@@ -24,33 +25,52 @@ get_header();
 		<div class="hero-frame-container">
 			<div class="hero-frame-left" id="frame1">
 				<div class="hero-mask">
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/dragon2.png' ); ?>" alt="Dragon" />
+					<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/dragon2.png'); ?>" alt="Dragon" />
 				</div>
-				<img class="frame-overlay" src="<?php echo esc_url( get_template_directory_uri() . '/frames/oval.png' ); ?>" alt="" />
+				<img class="frame-overlay" src="<?php echo esc_url(get_template_directory_uri() . '/frames/oval.png'); ?>" alt="" />
 			</div>
 			<div class="hero-frame-left" id="frame2">
 				<div class="hero-mask-rect">
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/dragon.png' ); ?>" alt="Dragon" />
+					<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/dragon.png'); ?>" alt="Dragon" />
 				</div>
-				<img class="frame-overlay" src="<?php echo esc_url( get_template_directory_uri() . '/frames/rectangle.png' ); ?>" alt="" />
+				<img class="frame-overlay" src="<?php echo esc_url(get_template_directory_uri() . '/frames/rectangle.png'); ?>" alt="" />
 			</div>
 		</div>
 
-		<!-- Book cover with hover rotation -->
-		<div class="hero-book-cover">
+		<!-- Book cover with hover rotation – links to the Books page -->
+		<?php
+		$_hero_img = get_theme_mod('antonia_hero_book_image', '');
+		if (! $_hero_img) {
+			$_hero_img = get_template_directory_uri() . '/pictures/abra_01_publish.jpg';
+		}
+		$_hero_url = get_theme_mod('antonia_hero_book_url', '');
+		if (! $_hero_url) {
+			$_hero_url = get_post_type_archive_link('book') ?: home_url('/books');
+		}
+		?>
+		<a href="<?php echo esc_url($_hero_url); ?>" class="hero-book-cover" aria-label="<?php esc_attr_e('View all books', 'antonia-zanolli'); ?>">
 			<img
-				src="<?php echo esc_url( get_template_directory_uri() . '/pictures/abra_01_publish.jpg' ); ?>"
-				alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?> – book cover" />
+				src="<?php echo esc_url($_hero_img); ?>"
+				alt="<?php echo esc_attr(get_bloginfo('name')); ?> – book cover" />
+		</a>
+
+		<!-- Extra decorative props near the book cover -->
+		<!-- Add your image paths below; remove the style="display:none" when ready -->
+		<div class="hero-prop hero-prop--left" style="display:none">
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/prop-notepad.webp'); ?>" alt="" />
+		</div>
+		<div class="hero-prop hero-prop--right" style="display:none">
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/prop-feather.webp'); ?>" alt="" />
 		</div>
 
 		<div class="scroll-down-container">
 			<div class="books-label">
-				<?php esc_html_e( 'books', 'antonia-zanolli' ); ?>
+				<?php echo esc_html(get_theme_mod('antonia_scroll_label', __('books', 'antonia-zanolli'))); ?>
 				<img
-					src="<?php echo esc_url( get_template_directory_uri() . '/ScrollDown.png' ); ?>"
+					src="<?php echo esc_url(get_template_directory_uri() . '/ScrollDown.png'); ?>"
 					class="scroll-down-icon"
 					id="scrolldown"
-					alt="<?php esc_attr_e( 'Scroll down', 'antonia-zanolli' ); ?>" />
+					alt="<?php esc_attr_e('Scroll down', 'antonia-zanolli'); ?>" />
 			</div>
 		</div>
 	</div><!-- .hero -->
@@ -58,24 +78,37 @@ get_header();
 	<!-- ── Main content (carousel + blog excerpts) ───────────────────────── -->
 	<div class="new-content-section" id="newContent">
 
-		<!-- Book Carousel -->
+		<!-- Book Carousel – add / reorder books via WP Admin › Books -->
 		<div class="book-carousel-container">
 			<div class="book-carousel">
-				<div class="book-item" data-book-id="0">
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/iceandfire_500px.webp' ); ?>"
-					     alt="<?php esc_attr_e( 'Ice and Fire', 'antonia-zanolli' ); ?>"
-					     class="book-cover" />
-				</div>
-				<div class="book-item active" data-book-id="1">
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/heartlessprince_kindle_500px.webp' ); ?>"
-					     alt="<?php esc_attr_e( 'The Heartless Prince', 'antonia-zanolli' ); ?>"
-					     class="book-cover" />
-				</div>
-				<div class="book-item" data-book-id="2">
-					<img src="<?php echo esc_url( get_template_directory_uri() . '/pictures/heartlessprince_kindle_500px.webp' ); ?>"
-					     alt="<?php esc_attr_e( 'The Heartless Prince II', 'antonia-zanolli' ); ?>"
-					     class="book-cover" />
-				</div>
+				<?php
+				$_carousel = get_posts([
+					'post_type'      => 'book',
+					'posts_per_page' => 6,
+					'post_status'    => 'publish',
+					'orderby'        => 'menu_order',
+					'order'          => 'ASC',
+				]);
+				if ($_carousel) :
+					$_active_i = (int) floor(count($_carousel) / 2);
+					foreach ($_carousel as $_ci => $_cbook) :
+						$_thumb = get_the_post_thumbnail_url($_cbook, 'medium')
+							?: get_template_directory_uri() . '/pictures/heartlessprince_kindle_500px.webp';
+				?>
+						<div class="book-item<?php echo ($_ci === $_active_i) ? ' active' : ''; ?>" data-book-id="<?php echo $_ci; ?>">
+							<img src="<?php echo esc_url($_thumb); ?>"
+								alt="<?php echo esc_attr(get_the_title($_cbook)); ?>"
+								class="book-cover" />
+						</div>
+					<?php
+					endforeach;
+				else : // Fallback: no books added yet – show placeholder
+					?>
+					<div class="book-item active" data-book-id="0">
+						<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/heartlessprince_kindle_500px.webp'); ?>"
+							alt="" class="book-cover" />
+					</div>
+				<?php endif; ?>
 			</div>
 
 			<div class="book-info">
@@ -83,7 +116,7 @@ get_header();
 					This epic fantasy tale weaves together adventure, magic, and destiny in a world where
 					nothing is as it seems. Follow the journey of heroes as they face impossible choices.
 				</p>
-				<a href="#" class="book-read-now" id="bookReadNowLink"><?php esc_html_e( 'Read Now', 'antonia-zanolli' ); ?></a>
+				<a href="#" class="book-read-now" id="bookReadNowLink"><?php esc_html_e('Read Now', 'antonia-zanolli'); ?></a>
 			</div>
 		</div><!-- .book-carousel-container -->
 
@@ -91,20 +124,20 @@ get_header();
 		<div class="blog-excerpts">
 			<div class="excerpt-list">
 				<?php
-				$recent_posts = get_posts( [
+				$recent_posts = get_posts([
 					'numberposts' => 3,
 					'post_status' => 'publish',
 					'orderby'     => 'date',
 					'order'       => 'DESC',
-				] );
+				]);
 
-				foreach ( $recent_posts as $post ) :
-					setup_postdata( $post );
+				foreach ($recent_posts as $post) :
+					setup_postdata($post);
 				?>
-				<div class="excerpt">
-					<h3><a href="<?php echo esc_url( get_permalink() ); ?>"><?php the_title(); ?></a></h3>
-					<?php the_excerpt(); ?>
-				</div>
+					<div class="excerpt">
+						<h3><a href="<?php echo esc_url(get_permalink()); ?>"><?php the_title(); ?></a></h3>
+						<?php the_excerpt(); ?>
+					</div>
 				<?php
 				endforeach;
 				wp_reset_postdata();

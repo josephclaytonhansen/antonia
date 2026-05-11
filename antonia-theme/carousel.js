@@ -4,28 +4,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const descriptionEl = document.querySelector('.book-description');
     const readNowLink = document.getElementById('bookReadNowLink');
 
-    // Book data with different descriptions and links
-    const bookData = [
-        {
-            title: "Ice and Fire",
-            description: "This epic fantasy tale weaves together adventure, magic, and destiny in a world where nothing is as it seems. Follow the journey of heroes as they face impossible choices and discover the truth hidden beneath ancient prophecies.",
-            link: "https://example.com/ice-and-fire"
-        },
-        {
-            title: "The Heartless Prince",
-            description: "A dark and captivating story of power, betrayal, and redemption. In a kingdom ruled by shadows, one prince must choose between his crown and his soul. A tale of darkness and light intertwined.",
-            link: "https://example.com/heartless-prince"
-        },
-        {
-            title: "Shadows of the Realm",
-            description: "An enchanting journey through forbidden lands and forgotten magic. When the veil between worlds grows thin, an unlikely hero must rise to face an ancient evil that threatens to consume everything.",
-            link: "https://example.com/shadows-realm"
-        }
-    ];
+    // Book data – populated from the WordPress Books CPT via wp_localize_script
+    // (Appearance › Customize or WP Admin › Books to edit).
+    // Falls back to placeholder entries so the carousel is never blank.
+    const bookData = (window.antoniaCarouselBooks && window.antoniaCarouselBooks.length)
+        ? window.antoniaCarouselBooks
+        : [
+            {
+                title: "Ice and Fire",
+                description: "This epic fantasy tale weaves together adventure, magic, and destiny in a world where nothing is as it seems. Follow the journey of heroes as they face impossible choices and discover the truth hidden beneath ancient prophecies.",
+                link: "#"
+            },
+            {
+                title: "The Heartless Prince",
+                description: "A dark and captivating story of power, betrayal, and redemption. In a kingdom ruled by shadows, one prince must choose between his crown and his soul. A tale of darkness and light intertwined.",
+                link: "#"
+            },
+            {
+                title: "Shadows of the Realm",
+                description: "An enchanting journey through forbidden lands and forgotten magic. When the veil between worlds grows thin, an unlikely hero must rise to face an ancient evil that threatens to consume everything.",
+                link: "#"
+            }
+        ];
 
-    let currentActiveIndex = 1; // Start with middle book active
+    // Read the active index from whichever .book-item has class 'active' (set server-side by PHP)
+    let currentActiveIndex = Array.from(bookItems).findIndex(el => el.classList.contains('active'));
+    if (currentActiveIndex < 0) currentActiveIndex = 0;
 
-    // Initialize with the default active book's info
+    // Initialize the description/link for the active book
     updateBookInfo(currentActiveIndex);
 
     function updateBookInfo(index, animate = false) {
