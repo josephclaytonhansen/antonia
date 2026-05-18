@@ -15,12 +15,17 @@ get_header();
 
 <main>
     <div class="single-book-container">
+        <div class="wp-post-navigation single-book-nav-top">
+            <a href="<?php echo esc_url(get_post_type_archive_link('book')); ?>">
+                ← <?php esc_html_e('All Books', 'antonia-zanolli'); ?>
+            </a>
+        </div>
 
         <?php if (have_posts()) : the_post(); ?>
 
             <?php
             $subtitle = get_post_meta(get_the_ID(), '_book_subtitle', true);
-            $buy_link = get_post_meta(get_the_ID(), '_book_buy_link', true);
+            $buy_links = antonia_get_book_buy_links(get_the_ID());
             $series   = get_the_terms(get_the_ID(), 'book_series');
             ?>
 
@@ -34,14 +39,29 @@ get_header();
                         <img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/abra_01_publish.jpg'); ?>"
                             alt="<?php echo esc_attr(get_the_title()); ?>" />
                     <?php endif; ?>
+
+                    <?php if (! empty($buy_links)) : ?>
+                        <div class="single-book-buy-group" aria-label="<?php esc_attr_e('Buy links', 'antonia-zanolli'); ?>">
+                            <?php foreach ($buy_links as $buy_item) : ?>
+                                <a href="<?php echo esc_url($buy_item['url']); ?>"
+                                    class="single-book-buy"
+                                    target="_blank"
+                                    rel="noopener noreferrer">
+                                    <?php echo esc_html($buy_item['label']); ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Book info -->
                 <div class="single-book-meta">
 
                     <?php if ($series && ! is_wp_error($series)) :
-                        $term = $series[0]; ?>
-                        <a href="<?php echo esc_url(get_term_link($term)); ?>" class="single-book-series-link">
+                        $term = $series[0];
+                        $series_link = antonia_get_series_landing_url($term);
+                    ?>
+                        <a href="<?php echo esc_url($series_link); ?>" class="single-book-series-link">
                             <?php echo esc_html($term->name); ?>
                         </a>
                     <?php endif; ?>
@@ -55,15 +75,6 @@ get_header();
                     <div class="single-book-description post-content">
                         <?php the_content(); ?>
                     </div>
-
-                    <?php if ($buy_link) : ?>
-                        <a href="<?php echo esc_url($buy_link); ?>"
-                            class="single-book-buy"
-                            target="_blank"
-                            rel="noopener noreferrer">
-                            <?php esc_html_e('Get the Book', 'antonia-zanolli'); ?>
-                        </a>
-                    <?php endif; ?>
 
                     <div class="wp-post-navigation" style="margin-top:2rem">
                         <a href="<?php echo esc_url(get_post_type_archive_link('book')); ?>">

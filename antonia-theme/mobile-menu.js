@@ -79,6 +79,13 @@
         if (e.key === 'Escape' && drawer.classList.contains('open')) close();
     });
 
+    // If the viewport returns to desktop width, force-close and unlock scroll.
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 1099 && drawer.classList.contains('open')) {
+            close();
+        }
+    });
+
     // Public API (used by any inline onclick if needed)
     window.toggleMobileMenu = function () {
         drawer.classList.contains('open') ? close() : open();

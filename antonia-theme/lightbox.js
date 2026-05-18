@@ -11,6 +11,30 @@
 !function () {
 	'use strict';
 
+	function linkGalleryImages() {
+		const galleryImages = document.querySelectorAll(
+			'.wp-block-gallery img, .blocks-gallery-grid img, .gallery img'
+		);
+
+		galleryImages.forEach(function (image) {
+			if (image.closest('a')) return;
+
+			const src = image.currentSrc || image.getAttribute('src');
+			if (!src) return;
+
+			const link = document.createElement('a');
+			link.href = src;
+			link.className = 'antonia-auto-lightbox-link';
+
+			if (image.alt) {
+				link.setAttribute('data-caption', image.alt);
+			}
+
+			image.parentNode.insertBefore(link, image);
+			link.appendChild(image);
+		});
+	}
+
 	// ── DOM creation ─────────────────────────────────────────────────────────
 
 	const overlay = document.createElement('div');
@@ -83,6 +107,8 @@
 
 	// ── Event wiring ─────────────────────────────────────────────────────────
 
+	linkGalleryImages();
+
 	closeBtn.addEventListener('click', close);
 	prevBtn.addEventListener('click', function () { show(current - 1); });
 	nextBtn.addEventListener('click', function () { show(current + 1); });
@@ -102,7 +128,7 @@
 
 	document.addEventListener('click', function (e) {
 		const anchor = e.target.closest(
-			'.wp-block-gallery a, .gallery a, a.lightbox-trigger, [data-lightbox] a'
+			'.wp-block-gallery a, .blocks-gallery-grid a, .gallery a, .wp-block-image a, a.lightbox-trigger, [data-lightbox] a'
 		);
 		if (!anchor || !isImageUrl(anchor.href)) return;
 
@@ -110,7 +136,7 @@
 
 		// Collect sibling image links from the same gallery block / container
 		const container = anchor.closest(
-			'.wp-block-gallery, .gallery, [data-lightbox]'
+			'.wp-block-gallery, .blocks-gallery-grid, .gallery, .wp-block-image, [data-lightbox]'
 		) || document;
 
 		const allAnchors = Array.from(

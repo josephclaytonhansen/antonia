@@ -1,10 +1,9 @@
 /*
 Theme Name:  Antonia Zanolli
-Theme URI:   https://antoniazan.com
 Author:      Joseph Hansen
 Author URI:  https://josephhansen.dev
 Description: Official author theme for Antonia Zanolli.
-Version:     1.0.1
+Version:     1.0.2
 License:     GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: antonia-zanolli
@@ -113,6 +112,16 @@ h1, h2, h3, h4, h5, h6 {
 	--header-menu-min-width: 300px;
 
 	--padding-header-y: min(2vw, 25px);
+	--mobile-footer-clearance: 8.5rem;
+
+	--antonia-series-tag-text: #d9b992;
+	--antonia-series-tag-border: #d9b992;
+	--antonia-series-tag-bg: #3a2b1f;
+	--antonia-book-subtitle-color: #d9b992;
+	--antonia-series-heading-size: 2rem;
+	--antonia-series-heading-letterspacing: .15em;
+	--antonia-series-description-size: 1rem;
+	--antonia-series-description-line-height: 1.6;
 }
 
 /* ============================================
@@ -205,10 +214,80 @@ header {
 
 .header-left, .header-right {
 	display: flex;
-	justify-content: space-around;
+	justify-content: center;
 	width: var(--header-menu-width);
 	min-width: var(--header-menu-min-width);
 	flex-wrap: nowrap;
+}
+
+.header-left .header-menu,
+.header-right .header-menu {
+	list-style: none;
+	display: flex;
+	align-items: center;
+	gap: clamp(1rem, 2vw, 2.25rem);
+	padding: 0;
+	margin: 0;
+}
+
+.header-left .header-menu > li,
+.header-right .header-menu > li {
+	position: relative;
+}
+
+.header-left .header-menu a,
+.header-right .header-menu a {
+	font-family: var(--font-text-secondary);
+	font-size: 1.5rem;
+	text-transform: uppercase;
+	white-space: nowrap;
+	display: inline-block;
+	line-height: 1.1;
+	padding: .1rem 0;
+}
+
+.header-left .sub-menu,
+.header-right .sub-menu {
+	position: absolute;
+	top: calc(100% + .55rem);
+	left: 50%;
+	transform: translateX(-50%);
+	list-style: none;
+	padding: .7rem .85rem;
+	margin: 0;
+	min-width: 220px;
+	border-radius: 8px;
+	background: #1f1b15f0;
+	border: 1px solid #ffecd824;
+	box-shadow: 0 12px 30px #0000004d;
+	visibility: hidden;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity .2s ease, transform .2s ease, visibility .2s ease;
+	z-index: 10002;
+}
+
+.header-left .sub-menu li,
+.header-right .sub-menu li {
+	margin: 0;
+}
+
+.header-left .sub-menu a,
+.header-right .sub-menu a {
+	font-size: 1rem;
+	text-transform: none;
+	display: block;
+	padding: .35rem .2rem;
+}
+
+.header-left li:hover > .sub-menu,
+.header-left li:focus-within > .sub-menu,
+.header-right li:hover > .sub-menu,
+.header-right li:focus-within > .sub-menu {
+	visibility: visible;
+	opacity: 1;
+	transform: translateX(-50%) translateY(0);
+	pointer-events: auto;
 }
 
 header h1 {
@@ -295,6 +374,7 @@ footer a, footer a:visited {
 
 .mobile-drawer {
 	position: fixed;
+	right: 0;
 	top: 0;
 	bottom: 0;
 	width: min(100vw, 400px);
@@ -305,6 +385,7 @@ footer a, footer a:visited {
 	z-index: 10000;
 	display: flex;
 	flex-direction: column;
+	visibility: hidden;
 	transform: translateX(100%);
 	transition: transform var(--transition-drawer);
 	box-shadow: -12px 0 30px #08060499;
@@ -320,6 +401,7 @@ footer a, footer a:visited {
 
 .mobile-drawer.open.drawer--right,
 .mobile-drawer.open.drawer--left {
+	visibility: visible;
 	transform: translateX(0);
 }
 
@@ -351,6 +433,32 @@ footer a, footer a:visited {
 	display: flex;
 	flex-direction: column;
 	gap: .75rem;
+}
+
+.drawer-menu,
+.drawer-menu .sub-menu {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.drawer-menu li {
+	margin: 0;
+}
+
+.drawer-menu > li + li {
+	margin-top: .35rem;
+}
+
+.drawer-menu .sub-menu {
+	margin-top: .25rem;
+	padding-left: .9rem;
+	border-left: 1px solid #ffecd824;
+}
+
+.drawer-menu .sub-menu a {
+	font-size: 1rem;
+	text-transform: none;
 }
 
 .mobile-drawer a {
@@ -620,6 +728,17 @@ footer a, footer a:visited {
 	z-index: 1;
 }
 
+.new-content-section > article {
+	width: min(95vw, 920px);
+	margin: 0 auto;
+}
+
+.new-content-section .post-content > * {
+	max-width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .new-content-section h2 {
 	font-family: var(--font-heading-main);
 	font-size: 3rem;
@@ -700,16 +819,6 @@ footer :nth-child(odd) {
 		display: none;
 	}
 
-	#frame1 {
-		top: 80%;
-		left: -30%;
-	}
-
-	#frame2 {
-		top: -100%;
-		right: -40%;
-	}
-
 	footer {
 		position: fixed;
 		bottom: 0;
@@ -727,7 +836,14 @@ footer :nth-child(odd) {
 	.blog-list-container,
 	.books-archive,
 	.single-book-container {
-		padding-bottom: 6rem;
+		padding-bottom: var(--mobile-footer-clearance);
+	}
+}
+
+@media screen and (min-width: 1100px) {
+	.mobile-drawer,
+	.drawer-backdrop {
+		display: none !important;
 	}
 }
 
@@ -752,10 +868,10 @@ footer :nth-child(odd) {
 	opacity: 0.95;
 }
 
-.corner-sketch-top-left    { top: 280px;  left: -140px; transform: rotate(-12deg); }
-.corner-sketch-bottom-left { bottom: 40px; left: -85px;  transform: rotate(-18deg); }
-.corner-sketch-top-right   { top: 320px;  right: -95px; transform: rotate(-8deg);  }
-.corner-sketch-bottom-right { bottom: -35px; right: -165px; transform: rotate(12deg); }
+.corner-sketch-top-left    { top: clamp(210px, 28vh, 320px);  left: clamp(-140px, -8vw, -70px); transform: rotate(-12deg); }
+.corner-sketch-bottom-left { bottom: clamp(-10px, 4vh, 45px); left: clamp(-85px, -6vw, -45px); transform: rotate(-18deg); }
+.corner-sketch-top-right   { top: clamp(260px, 36vh, 390px);  right: clamp(-95px, -7vw, -40px); transform: rotate(-8deg);  }
+.corner-sketch-bottom-right { bottom: clamp(-40px, -2vh, 10px); right: clamp(-165px, -10vw, -70px); transform: rotate(12deg); }
 
 @media screen and (max-width: 1100px) {
 	.corner-sketch { width: 125px; }
@@ -890,6 +1006,15 @@ footer :nth-child(odd) {
 	justify-content: center;
 }
 
+.blog-excerpts-cta-wrap {
+	margin-top: 1.8rem;
+}
+
+.blog-excerpts-cta {
+	font-size: 1.15rem;
+	padding: .7rem 1.5rem;
+}
+
 @media screen and (max-width: 768px) {
 	.blog-excerpts .excerpt-list {
 		flex-direction: column;
@@ -1012,19 +1137,25 @@ footer :nth-child(odd) {
 
 .books-series-group h2 {
 	font-family: var(--font-heading-main);
-	font-size: clamp(1.4rem, 3vw, 2rem);
+	font-size: clamp(1.4rem, 3vw, var(--antonia-series-heading-size));
 	text-align: center;
 	text-transform: uppercase;
-	letter-spacing: .15em;
+	letter-spacing: var(--antonia-series-heading-letterspacing);
 	margin-bottom: .4rem;
 	color: var(--color-light-text);
+}
+
+.books-series-group h2 a,
+.books-series-group h2 a:visited {
+	color: inherit;
 }
 
 .books-series-subtitle {
 	text-align: center;
 	font-family: var(--font-text-secondary);
-	font-size: .95rem;
-	color: var(--color-footer-text);
+	font-size: var(--antonia-series-description-size);
+	line-height: var(--antonia-series-description-line-height);
+	color: var(--antonia-book-subtitle-color);
 	margin-bottom: 2rem;
 	letter-spacing: .05em;
 }
@@ -1083,7 +1214,7 @@ footer :nth-child(odd) {
 .book-card-subtitle {
 	font-family: var(--font-text-secondary);
 	font-size: .8rem;
-	color: var(--color-footer-text);
+	color: var(--antonia-book-subtitle-color);
 	text-transform: uppercase;
 	letter-spacing: .05em;
 }
@@ -1132,7 +1263,7 @@ footer :nth-child(odd) {
 
 .single-book-subtitle {
 	font-family: var(--font-text-secondary);
-	color: var(--color-footer-text);
+	color: var(--antonia-book-subtitle-color);
 	text-transform: uppercase;
 	letter-spacing: .08em;
 	font-size: .9rem;
@@ -1147,15 +1278,23 @@ footer :nth-child(odd) {
 	color: var(--color-light-text);
 }
 
+.single-book-buy-group {
+	display: flex;
+	flex-direction: column;
+	gap: .75rem;
+	margin-top: 1.1rem;
+}
+
 .single-book-series-link {
 	display: inline-block;
 	font-family: var(--font-text-secondary);
 	font-size: .85rem;
 	text-transform: uppercase;
 	letter-spacing: .08em;
-	color: var(--color-footer-text);
+	color: var(--antonia-series-tag-text);
 	margin-bottom: 2rem;
-	border: 1px solid var(--color-footer-text);
+	border: 1px solid var(--antonia-series-tag-border);
+	background: var(--antonia-series-tag-bg);
 	padding: .3rem .8rem;
 	border-radius: 4px;
 	transition: all .3s ease;
@@ -1176,6 +1315,12 @@ footer :nth-child(odd) {
 	font-size: 1.2rem;
 	transition: all .3s ease;
 	margin-top: .5rem;
+}
+
+.single-book-buy:visited,
+.single-book-buy:focus,
+.single-book-buy:active {
+	color: var(--color-dark-bg);
 }
 
 .single-book-buy:hover, .single-book-buy:visited:hover {
@@ -1248,6 +1393,20 @@ footer :nth-child(odd) {
 	margin-bottom: 1rem;
 }
 
+.post-preview-content p,
+.post-preview-content li,
+.post-preview-content blockquote {
+	font-size: 1rem;
+	line-height: 1.6;
+}
+
+.post-preview-content h2,
+.post-preview-content h3,
+.post-preview-content h4 {
+	font-size: 1.1rem;
+	margin: 0 0 .5rem;
+}
+
 .wp-post-navigation {
 	margin-top: 2rem;
 	padding-top: 1rem;
@@ -1283,6 +1442,12 @@ footer :nth-child(odd) {
 	color: var(--color-dark-text);
 }
 
+.blog-excerpts .post-preview-content p,
+.blog-excerpts .post-preview-content li,
+.blog-excerpts .post-preview-content blockquote {
+	color: var(--color-dark-text);
+}
+
 .blog-excerpts .excerpt a {
 	color: var(--color-hover-accent);
 	text-decoration: underline;
@@ -1314,6 +1479,21 @@ footer :nth-child(odd) {
 	background-color: var(--color-hover-accent);
 	color: var(--color-dark-bg);
 	border-color: var(--color-hover-accent);
+}
+
+/* Gallery presentation for Gutenberg + classic gallery markup */
+.post-content .wp-block-gallery,
+.post-content .blocks-gallery-grid,
+.post-content .gallery {
+	margin: 1.5rem auto;
+	max-width: min(95vw, 1050px);
+}
+
+.post-content .wp-block-gallery img,
+.post-content .blocks-gallery-item img,
+.post-content .gallery img {
+	cursor: zoom-in;
+	border-radius: 4px;
 }
 
 /* ============================================

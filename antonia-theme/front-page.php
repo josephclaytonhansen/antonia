@@ -86,8 +86,11 @@ get_header();
 					'post_type'      => 'book',
 					'posts_per_page' => 6,
 					'post_status'    => 'publish',
-					'orderby'        => 'menu_order',
-					'order'          => 'ASC',
+					'meta_key'       => '_book_carousel_priority',
+					'orderby'        => [
+						'meta_value_num' => 'DESC',
+						'menu_order'     => 'ASC',
+					],
 				]);
 				if ($_carousel) :
 					$_active_i = (int) floor(count($_carousel) / 2);
@@ -136,13 +139,25 @@ get_header();
 				?>
 					<div class="excerpt">
 						<h3><a href="<?php echo esc_url(get_permalink()); ?>"><?php the_title(); ?></a></h3>
-						<?php the_excerpt(); ?>
+						<div class="post-preview-content">
+							<?php echo antonia_get_post_preview_html(get_the_ID(), 2, 40); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+							?>
+						</div>
 					</div>
 				<?php
 				endforeach;
 				wp_reset_postdata();
 				?>
 			</div>
+			<?php
+			$posts_page_id = get_option('page_for_posts');
+			$blog_url      = $posts_page_id ? get_permalink($posts_page_id) : home_url('/');
+			?>
+			<p class="blog-excerpts-cta-wrap">
+				<a class="book-read-now blog-excerpts-cta" href="<?php echo esc_url($blog_url); ?>">
+					<?php esc_html_e('Read the Blog', 'antonia-zanolli'); ?>
+				</a>
+			</p>
 		</div><!-- .blog-excerpts -->
 
 	</div><!-- .new-content-section -->

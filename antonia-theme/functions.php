@@ -83,8 +83,11 @@ function antonia_enqueue_scripts()
 			'post_type'      => 'book',
 			'posts_per_page' => 6,
 			'post_status'    => 'publish',
-			'orderby'        => 'menu_order',
-			'order'          => 'ASC',
+			'meta_key'       => '_book_carousel_priority',
+			'orderby'        => [
+				'meta_value_num' => 'DESC',
+				'menu_order'     => 'ASC',
+			],
 		]);
 
 		$_carousel_data = [];
@@ -112,6 +115,130 @@ function antonia_enqueue_scripts()
 	}
 }
 add_action('wp_enqueue_scripts', 'antonia_enqueue_scripts');
+
+// ─── Theme Helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Return the best public URL for a book series term.
+ *
+ * If a normal Page exists with the same slug as the series term,
+ * that page is used as the destination. Otherwise, the taxonomy archive link
+ * is returned.
+ */
+function antonia_get_series_landing_url($term)
+{
+	if (! $term || is_wp_error($term)) {
+		return '';
+	}
+
+	$_series_page = get_page_by_path($term->slug, OBJECT, 'page');
+	if ($_series_page instanceof WP_Post && $_series_page->post_status === 'publish') {
+		return get_permalink($_series_page);
+	}
+
+	$_term_link = get_term_link($term);
+	if (is_wp_error($_term_link)) {
+		return '';
+	}
+
+	return $_term_link;
+}
+
+/**
+ * Build display-ready buy-link buttons for a book.
+ *
+ * Supports two dashboard fields:
+ *  1. Legacy single URL field (`_book_buy_link`)
+ *  2. Multi-link textarea (`_book_buy_links`) with one `Label|URL` per line
+ */
+function antonia_get_book_buy_links($post_id)
+{
+	$links = [];
+
+	$_raw_multi = trim((string) get_post_meta($post_id, '_book_buy_links', true));
+	if ($_raw_multi !== '') {
+		$_lines = preg_split('/\r\n|\r|\n/', $_raw_multi);
+		foreach ($_lines as $_line) {
+			$_line = trim((string) $_line);
+			if ($_line === '') {
+				continue;
+			}
+
+			$_parts = array_map('trim', explode('|', $_line, 2));
+			$_label = ! empty($_parts[0]) ? $_parts[0] : __('Get the Book', 'antonia-zanolli');
+			$_url   = isset($_parts[1]) ? esc_url($_parts[1]) : '';
+
+			if ($_url !== '') {
+				$links[] = [
+					'label' => sanitize_text_field($_label),
+					'url'   => $_url,
+				];
+			}
+		}
+	}
+
+	if (empty($links)) {
+		$_legacy = esc_url((string) get_post_meta($post_id, '_book_buy_link', true));
+		if ($_legacy !== '') {
+			$links[] = [
+				'label' => __('Get the Book', 'antonia-zanolli'),
+				'url'   => $_legacy,
+			];
+		}
+	}
+
+	return $links;
+}
+
+/**
+ * Render a formatted post preview with basic Gutenberg block styling.
+ *
+ * This is used for excerpt cards/listings when no manual excerpt is set.
+ */
+function antonia_get_post_preview_html($post = null, $max_blocks = 2, $word_limit = 55)
+{
+	$_post = get_post($post);
+	if (! $_post instanceof WP_Post) {
+		return '';
+	}
+
+	if (has_excerpt($_post)) {
+		$_excerpt = get_the_excerpt($_post);
+		return wpautop(wp_kses_post($_excerpt));
+	}
+
+	$_allowed_blocks = [
+		'core/paragraph',
+		'core/heading',
+		'core/list',
+		'core/quote',
+		'core/pullquote',
+	];
+
+	$_html_parts = [];
+	$_parsed     = parse_blocks((string) $_post->post_content);
+	foreach ($_parsed as $_block) {
+		if (! isset($_block['blockName']) || ! in_array($_block['blockName'], $_allowed_blocks, true)) {
+			continue;
+		}
+
+		$_rendered = trim((string) render_block($_block));
+		if ($_rendered !== '') {
+			$_html_parts[] = wp_kses_post($_rendered);
+		}
+
+		if (count($_html_parts) >= $max_blocks) {
+			break;
+		}
+	}
+
+	if (! empty($_html_parts)) {
+		return implode("\n", $_html_parts);
+	}
+
+	$_fallback = wp_trim_words(wp_strip_all_tags((string) $_post->post_content), $word_limit, '…');
+	return '<p>' . esc_html($_fallback) . '</p>';
+}
 
 // ─── Excerpt Customisation ────────────────────────────────────────────────────
 
@@ -308,6 +435,8 @@ function antonia_book_meta_box_html($post)
 	wp_nonce_field('antonia_book_meta_save', 'antonia_book_meta_nonce');
 	$subtitle = get_post_meta($post->ID, '_book_subtitle', true);
 	$buy_link = get_post_meta($post->ID, '_book_buy_link', true);
+	$buy_links = get_post_meta($post->ID, '_book_buy_links', true);
+	$carousel_priority = get_post_meta($post->ID, '_book_carousel_priority', true);
 ?>
 	<p>
 		<label for="book_subtitle"><strong><?php esc_html_e('Subtitle', 'antonia-zanolli'); ?></strong></label><br />
@@ -315,10 +444,21 @@ function antonia_book_meta_box_html($post)
 			value="<?php echo esc_attr($subtitle); ?>" style="width:100%" />
 	</p>
 	<p>
+		<label for="book_carousel_priority"><strong><?php esc_html_e('Carousel Priority', 'antonia-zanolli'); ?></strong></label><br />
+		<input type="number" id="book_carousel_priority" name="book_carousel_priority"
+			value="<?php echo esc_attr($carousel_priority); ?>" style="width:100%" />
+		<small><?php esc_html_e('Higher numbers appear first in the homepage carousel. Keep "Order" (Page Attributes) for series-page ordering.', 'antonia-zanolli'); ?></small>
+	</p>
+	<p>
 		<label for="book_buy_link"><strong><?php esc_html_e('Buy Link (URL)', 'antonia-zanolli'); ?></strong></label><br />
 		<input type="url" id="book_buy_link" name="book_buy_link"
 			value="<?php echo esc_attr($buy_link); ?>" style="width:100%"
 			placeholder="https://…" />
+	</p>
+	<p>
+		<label for="book_buy_links"><strong><?php esc_html_e('Buy Buttons (one per line)', 'antonia-zanolli'); ?></strong></label><br />
+		<textarea id="book_buy_links" name="book_buy_links" rows="5" style="width:100%" placeholder="Amazon|https://amazon.com/...\nBarnes & Noble|https://..."><?php echo esc_textarea($buy_links); ?></textarea>
+		<small><?php esc_html_e('Format: Label|URL. Use this for multiple retailers.', 'antonia-zanolli'); ?></small>
 	</p>
 <?php
 }
@@ -335,6 +475,35 @@ function antonia_book_meta_save($post_id)
 	}
 	if (isset($_POST['book_buy_link'])) {
 		update_post_meta($post_id, '_book_buy_link', esc_url_raw(wp_unslash($_POST['book_buy_link'])));
+	}
+
+	if (isset($_POST['book_buy_links'])) {
+		$_raw_lines = preg_split('/\r\n|\r|\n/', (string) wp_unslash($_POST['book_buy_links']));
+		$_cleaned   = [];
+
+		foreach ($_raw_lines as $_line) {
+			$_line = trim((string) $_line);
+			if ($_line === '') {
+				continue;
+			}
+
+			$_parts = array_map('trim', explode('|', $_line, 2));
+			if (count($_parts) !== 2) {
+				continue;
+			}
+
+			$_label = sanitize_text_field($_parts[0]);
+			$_url   = esc_url_raw($_parts[1]);
+			if ($_label !== '' && $_url !== '') {
+				$_cleaned[] = $_label . '|' . $_url;
+			}
+		}
+
+		update_post_meta($post_id, '_book_buy_links', implode("\n", $_cleaned));
+	}
+
+	if (isset($_POST['book_carousel_priority'])) {
+		update_post_meta($post_id, '_book_carousel_priority', intval($_POST['book_carousel_priority']));
 	}
 }
 add_action('save_post', 'antonia_book_meta_save');
@@ -414,5 +583,124 @@ function antonia_customize_register($wp_customize)
 		'section'     => 'antonia_footer',
 		'type'        => 'text',
 	]);
+
+	// ── Section: Books Styling ───────────────────────────────────────────
+	$wp_customize->add_section('antonia_books_style', [
+		'title'       => __('Books Styling', 'antonia-zanolli'),
+		'priority'    => 40,
+		'description' => __('Change colors and typography for series tags, subtitles, and book series headings.', 'antonia-zanolli'),
+	]);
+
+	$wp_customize->add_setting('antonia_series_tag_text_color', [
+		'default'           => '#d9b992',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_series_tag_text_color', [
+		'label'   => __('Series Tag Text Color', 'antonia-zanolli'),
+		'section' => 'antonia_books_style',
+	]));
+
+	$wp_customize->add_setting('antonia_series_tag_border_color', [
+		'default'           => '#d9b992',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_series_tag_border_color', [
+		'label'   => __('Series Tag Border Color', 'antonia-zanolli'),
+		'section' => 'antonia_books_style',
+	]));
+
+	$wp_customize->add_setting('antonia_series_tag_bg_color', [
+		'default'           => '#3a2b1f',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_series_tag_bg_color', [
+		'label'   => __('Series Tag Background', 'antonia-zanolli'),
+		'section' => 'antonia_books_style',
+	]));
+
+	$wp_customize->add_setting('antonia_book_subtitle_color', [
+		'default'           => '#d9b992',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_book_subtitle_color', [
+		'label'   => __('Book Subtitle Color', 'antonia-zanolli'),
+		'section' => 'antonia_books_style',
+	]));
+
+	$wp_customize->add_setting('antonia_series_heading_size', [
+		'default'           => 2,
+		'sanitize_callback' => 'floatval',
+	]);
+	$wp_customize->add_control('antonia_series_heading_size', [
+		'label'       => __('Series Title Size (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_books_style',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.1, 'min' => 1.2, 'max' => 4],
+	]);
+
+	$wp_customize->add_setting('antonia_series_heading_letterspacing', [
+		'default'           => 0.15,
+		'sanitize_callback' => 'floatval',
+	]);
+	$wp_customize->add_control('antonia_series_heading_letterspacing', [
+		'label'       => __('Series Title Letter Spacing (em)', 'antonia-zanolli'),
+		'section'     => 'antonia_books_style',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.01, 'min' => 0, 'max' => 0.5],
+	]);
+
+	$wp_customize->add_setting('antonia_series_description_size', [
+		'default'           => 1,
+		'sanitize_callback' => 'floatval',
+	]);
+	$wp_customize->add_control('antonia_series_description_size', [
+		'label'       => __('Series Description Size (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_books_style',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.05, 'min' => 0.8, 'max' => 2],
+	]);
+
+	$wp_customize->add_setting('antonia_series_description_lineheight', [
+		'default'           => 1.6,
+		'sanitize_callback' => 'floatval',
+	]);
+	$wp_customize->add_control('antonia_series_description_lineheight', [
+		'label'       => __('Series Description Line Height', 'antonia-zanolli'),
+		'section'     => 'antonia_books_style',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.1, 'min' => 1, 'max' => 2.4],
+	]);
 }
 add_action('customize_register', 'antonia_customize_register');
+
+/**
+ * Print CSS custom properties from Customizer values.
+ */
+function antonia_print_customizer_css()
+{
+	$series_tag_text_color      = get_theme_mod('antonia_series_tag_text_color', '#d9b992');
+	$series_tag_border_color    = get_theme_mod('antonia_series_tag_border_color', '#d9b992');
+	$series_tag_bg_color        = get_theme_mod('antonia_series_tag_bg_color', '#3a2b1f');
+	$book_subtitle_color        = get_theme_mod('antonia_book_subtitle_color', '#d9b992');
+	$series_heading_size        = (float) get_theme_mod('antonia_series_heading_size', 2);
+	$series_heading_letterspace = (float) get_theme_mod('antonia_series_heading_letterspacing', 0.15);
+	$series_desc_size           = (float) get_theme_mod('antonia_series_description_size', 1);
+	$series_desc_line_height    = (float) get_theme_mod('antonia_series_description_lineheight', 1.6);
+
+	$series_heading_size        = max(1.2, min($series_heading_size, 4));
+	$series_heading_letterspace = max(0, min($series_heading_letterspace, 0.5));
+	$series_desc_size           = max(0.8, min($series_desc_size, 2));
+	$series_desc_line_height    = max(1, min($series_desc_line_height, 2.4));
+
+	echo '<style id="antonia-customizer-vars">:root{' .
+		'--antonia-series-tag-text:' . esc_attr($series_tag_text_color) . ';' .
+		'--antonia-series-tag-border:' . esc_attr($series_tag_border_color) . ';' .
+		'--antonia-series-tag-bg:' . esc_attr($series_tag_bg_color) . ';' .
+		'--antonia-book-subtitle-color:' . esc_attr($book_subtitle_color) . ';' .
+		'--antonia-series-heading-size:' . esc_attr($series_heading_size) . 'rem;' .
+		'--antonia-series-heading-letterspacing:' . esc_attr($series_heading_letterspace) . 'em;' .
+		'--antonia-series-description-size:' . esc_attr($series_desc_size) . 'rem;' .
+		'--antonia-series-description-line-height:' . esc_attr($series_desc_line_height) . ';' .
+		'}</style>';
+}
+add_action('wp_head', 'antonia_print_customizer_css');

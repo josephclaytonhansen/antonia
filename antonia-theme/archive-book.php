@@ -68,9 +68,10 @@ get_header();
             foreach ($series_groups as $group) :
                 $term        = $group['term'];
                 $description = term_description($term->term_id, 'book_series');
+                $series_link = antonia_get_series_landing_url($term);
             ?>
                 <section class="books-series-group">
-                    <h2><?php echo esc_html(strtoupper($term->name)); ?></h2>
+                    <h2><a href="<?php echo esc_url($series_link); ?>"><?php echo esc_html(strtoupper($term->name)); ?></a></h2>
                     <?php if ($description) : ?>
                         <p class="books-series-subtitle"><?php echo wp_kses_post($description); ?></p>
                     <?php endif; ?>
