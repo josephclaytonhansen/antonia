@@ -100,19 +100,6 @@ h1, h2, h3, h4, h5, h6 {
 	--transition-drawer: 1.3s cubic-bezier(.22, .9, .32, 1);
 	
 	--padding-header-y: min(2vw, 25px);
-	
-	--page-bg-1-2: #fff9ec;
-	--page-bg-1-2-rgb: 255 249 236;
-	--page-bg-3-4: #f7f3e9;
-	--page-bg-3-4-rgb: 247 243 233;
-	--page-bg-5: #fefcf6;
-	--page-bg-5-rgb: 254 252 246;
-	--page-bg-6: #fefcf6;
-	--page-bg-6-rgb: 254 252 246;
-	
-	--cover-extra-x: 20px;
-	--cover-extra-y: 18px;
-	--front-inner-bg: #261f15;
 }
 
 /* ============================================
@@ -404,17 +391,15 @@ footer a, footer a:visited {
    ============================================ */
 
 .hero {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100vw;
-	height: 100vh;
+	position: relative;
+	width: 100%;
+	min-height: 100vh;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	pointer-events: none;
-	z-index: 100;
-	will-change: transform, opacity;
+	z-index: 1;
+	padding-top: 80px;
 }
 
 .hero > * {
@@ -552,134 +537,29 @@ footer a, footer a:visited {
 }
 
 /* ============================================
-   BOOK / FLIPBOOK
+   HERO BOOK COVER (hover rotation)
    ============================================ */
 
-.book-wrapper {
-	width: 80vw;
-	max-width: 80vw;
-	margin-left: 10vw;
-	display: flex;
-	justify-content: center;
+.hero-book-cover {
 	position: absolute;
-	left: 0;
-	top: 40%;
-}
-
-.book {
-	transform-style: preserve-3d;
-	transform: scale(1.5);
-	position: relative;
-	height: 300px;
-	cursor: pointer;
-	backface-visibility: visible;
-}
-
-.front, .back, .page1, .page2, .page3, .page4, .page5, .page6 {
-	transform-style: preserve-3d;
-	position: absolute;
-	width: 200px;
-	height: 100%;
-	top: 0;
-	left: 0;
-	transform-origin: left center;
-	transition: transform .5s ease-in-out, box-shadow .35s ease-in-out;
-}
-
-.front, .back {
-	width: calc(200px + var(--cover-extra-x));
-	height: calc(100% + var(--cover-extra-y));
-	top: calc(var(--cover-extra-y) / -2);
-	background: #000;
-}
-
-.front, .page1, .page3, .page5, .back, .page2, .page4, .page6 {
-	border-bottom-right-radius: .5em;
-	border-top-right-radius: .5em;
-}
-.front {
-	background-image: url(pictures/abra_01_publish.jpg);
-	background-size: cover;
-}
-
-.front-inner {
-	position: absolute;
-	border-top-left-radius: .5em;
-	border-bottom-left-radius: .5em;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	transform-origin: center center;
-	transform: rotateY(180deg);
-	backface-visibility: hidden;
-	background-color: var(--front-inner-bg);
-}
-.page1, .page2 {
-	background: linear-gradient(rgb(var(--page-bg-1-2-rgb) / 0.7), rgb(var(--page-bg-1-2-rgb) / 0.7)), 
-	            url(pictures/old-paper-texture-background_118047-1365-2911076363.jpg);
-	background-blend-mode: normal;
-}
-
-.page3, .page4 {
-	background: linear-gradient(rgb(var(--page-bg-3-4-rgb) / 0.7), rgb(var(--page-bg-3-4-rgb) / 0.7)), 
-	            url(pictures/old-paper-texture-background_118047-1365-2911076363.jpg);
-	background-blend-mode: normal;
-}
-
-.page5 {
-	background: linear-gradient(rgb(var(--page-bg-5-rgb) / 0.7), rgb(var(--page-bg-5-rgb) / 0.7)), 
-	            url(pictures/old-paper-texture-background_118047-1365-2911076363.jpg);
-	background-blend-mode: normal;
-}
-
-.page6 {
-	background: linear-gradient(rgb(var(--page-bg-6-rgb) / 0.7), rgb(var(--page-bg-6-rgb) / 0.7)), 
-	            url(pictures/old-paper-texture-background_118047-1365-2911076363.jpg);
-	background-blend-mode: normal;
-}
-.page5-face {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backface-visibility: hidden;
-}
-
-.page5-back {
-	transform: rotateY(180deg);
-}
-
-.page5-inner {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	transform-origin: center center;
-	transform: scaleX(-1);
-	display: block;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%) rotate(-3deg);
+	z-index: 10;
 	pointer-events: auto;
+	transition: transform 0.5s ease;
 }
 
-.page5-dragon {
-	padding: 1rem;
-	display: block;
-	max-width: 100%;
+.hero-book-cover img {
+	width: 200px;
 	height: auto;
-}
-.page6-text {
-	font-size: .8rem;
-	padding: 1rem;
-	line-height: 1.5;
-	font-family: Caudex, serif;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+	border-radius: 4px;
+	display: block;
 }
 
-.page6-link {
-	font-family: var(--font-heading-main), serif;
-	font-size: 2rem;
-	line-height: 1.5;
-	padding: 1rem;
-	padding-top: 0rem;
+.hero-book-cover:hover {
+	transform: translate(-50%, -50%) rotate(4deg) scale(1.05);
 }
 
 /* ============================================
@@ -746,12 +626,7 @@ footer :nth-child(odd) {
 	font-size: .7rem;
 }
 
-/* ============================================
-   PAGE SCROLL SPACER
-   ============================================ */
 
-.page-scroll-spacer {	height: 200vh;
-}
 
 /* ============================================
    MEDIA QUERIES
@@ -768,15 +643,6 @@ footer :nth-child(odd) {
 	.header-right, 
 	.fogwrapper {
 		display: none;
-	}
-	
-	.book {
-		transform: scale(.8);
-	}
-		.book-wrapper {
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
 	}
 	
 	#frame1 {
