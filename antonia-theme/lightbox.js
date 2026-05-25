@@ -42,6 +42,7 @@
 	overlay.setAttribute('role', 'dialog');
 	overlay.setAttribute('aria-modal', 'true');
 	overlay.setAttribute('aria-label', 'Image viewer');
+	overlay.setAttribute('tabindex', '-1');
 
 	overlay.innerHTML =
 		'<button class="antonia-lightbox-prev" aria-label="Previous image">&#8592;</button>' +
@@ -92,7 +93,7 @@
 		show(startIndex);
 		overlay.classList.add('is-open');
 		document.body.style.overflow = 'hidden';
-		closeBtn.focus();
+		overlay.focus();
 	}
 
 	function close() {
@@ -119,9 +120,18 @@
 
 	document.addEventListener('keydown', function (e) {
 		if (!overlay.classList.contains('is-open')) return;
-		if (e.key === 'Escape')      { e.preventDefault(); close(); }
-		if (e.key === 'ArrowLeft')   { e.preventDefault(); show(current - 1); }
-		if (e.key === 'ArrowRight')  { e.preventDefault(); show(current + 1); }
+		if (e.key === 'Escape' || e.key === 'Esc') {
+			e.preventDefault();
+			close();
+		}
+		if (e.key === 'ArrowLeft' || e.key === 'Left') {
+			e.preventDefault();
+			show(current - 1);
+		}
+		if (e.key === 'ArrowRight' || e.key === 'Right') {
+			e.preventDefault();
+			show(current + 1);
+		}
 	});
 
 	// ── Delegate click handler ────────────────────────────────────────────────

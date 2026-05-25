@@ -81,7 +81,7 @@
 
     // If the viewport returns to desktop width, force-close and unlock scroll.
     window.addEventListener('resize', function () {
-        if (window.innerWidth > 1099 && drawer.classList.contains('open')) {
+        if (window.innerWidth > 1100 && drawer.classList.contains('open')) {
             close();
         }
     });

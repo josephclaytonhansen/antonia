@@ -40,12 +40,14 @@ add_action('after_setup_theme', 'antonia_setup');
 
 function antonia_enqueue_scripts()
 {
+	$theme_version = wp_get_theme()->get('Version');
+
 	// Main theme stylesheet (style.css in theme root)
 	wp_enqueue_style(
 		'antonia-style',
 		get_stylesheet_uri(),
 		[],
-		'1.0.0'
+		$theme_version
 	);
 
 	// Google Fonts – preconnect hints go in header.php; the actual CSS sheet here
@@ -63,7 +65,7 @@ function antonia_enqueue_scripts()
 		'antonia-mobile-menu',
 		get_template_directory_uri() . '/mobile-menu.js',
 		[],
-		'1.0.0',
+		$theme_version,
 		true  // footer
 	);
 
@@ -73,7 +75,7 @@ function antonia_enqueue_scripts()
 			'antonia-carousel',
 			get_template_directory_uri() . '/carousel.js',
 			[],
-			'1.0.0',
+			$theme_version,
 			true
 		);
 
@@ -109,7 +111,7 @@ function antonia_enqueue_scripts()
 			'antonia-lightbox',
 			get_template_directory_uri() . '/lightbox.js',
 			[],
-			'1.0.0',
+			$theme_version,
 			true
 		);
 	}
@@ -131,9 +133,15 @@ function antonia_get_series_landing_url($term)
 		return '';
 	}
 
-	$_series_page = get_page_by_path($term->slug, OBJECT, 'page');
-	if ($_series_page instanceof WP_Post && $_series_page->post_status === 'publish') {
-		return get_permalink($_series_page);
+	// Match by page slug, even if the page is nested under a parent page.
+	$_series_pages = get_posts([
+		'post_type'      => 'page',
+		'name'           => $term->slug,
+		'post_status'    => 'publish',
+		'posts_per_page' => 1,
+	]);
+	if (! empty($_series_pages)) {
+		return get_permalink($_series_pages[0]);
 	}
 
 	$_term_link = get_term_link($term);
@@ -142,6 +150,48 @@ function antonia_get_series_landing_url($term)
 	}
 
 	return $_term_link;
+}
+
+/**
+ * Sanitize numeric customizer fields that may include locale commas.
+ */
+function antonia_sanitize_float_range($value, $min, $max, $default)
+{
+	$_raw = str_replace(',', '.', trim((string) $value));
+	if ($_raw === '' || ! is_numeric($_raw)) {
+		return (float) $default;
+	}
+
+	$_num = (float) $_raw;
+	if ($_num < $min) {
+		return (float) $min;
+	}
+	if ($_num > $max) {
+		return (float) $max;
+	}
+
+	return $_num;
+}
+
+/**
+ * Sanitize integer customizer fields.
+ */
+function antonia_sanitize_int_range($value, $min, $max, $default)
+{
+	$_raw = trim((string) $value);
+	if ($_raw === '' || ! is_numeric($_raw)) {
+		return (int) $default;
+	}
+
+	$_num = (int) round((float) $_raw);
+	if ($_num < $min) {
+		return (int) $min;
+	}
+	if ($_num > $max) {
+		return (int) $max;
+	}
+
+	return $_num;
 }
 
 /**
@@ -465,6 +515,7 @@ function antonia_book_meta_box_html($post)
 
 function antonia_book_meta_save($post_id)
 {
+	if (get_post_type($post_id) !== 'book') return;
 	if (! isset($_POST['antonia_book_meta_nonce'])) return;
 	if (! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['antonia_book_meta_nonce'])), 'antonia_book_meta_save')) return;
 	if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
@@ -584,6 +635,176 @@ function antonia_customize_register($wp_customize)
 		'type'        => 'text',
 	]);
 
+	// ── Section: Layout & Spacing ───────────────────────────────────────
+	$wp_customize->add_section('antonia_layout', [
+		'title'       => __('Layout & Spacing', 'antonia-zanolli'),
+		'priority'    => 37,
+		'description' => __('Adjust menu spacing and top spacing under the fixed header.', 'antonia-zanolli'),
+	]);
+
+	$wp_customize->add_setting('antonia_header_menu_width_percent', [
+		'default'           => 30,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_int_range($value, 16, 45, 30);
+		},
+	]);
+	$wp_customize->add_control('antonia_header_menu_width_percent', [
+		'label'       => __('Header Menu Side Width (%)', 'antonia-zanolli'),
+		'section'     => 'antonia_layout',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 1, 'min' => 16, 'max' => 45],
+	]);
+
+	$wp_customize->add_setting('antonia_header_menu_min_width_px', [
+		'default'           => 300,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_int_range($value, 140, 520, 300);
+		},
+	]);
+	$wp_customize->add_control('antonia_header_menu_min_width_px', [
+		'label'       => __('Header Menu Min Width (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_layout',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 1, 'min' => 140, 'max' => 520],
+	]);
+
+	$wp_customize->add_setting('antonia_content_top_gap_rem', [
+		'default'           => 3,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 1, 8, 3);
+		},
+	]);
+	$wp_customize->add_control('antonia_content_top_gap_rem', [
+		'label'       => __('Desktop Top Gap Under Menu (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_layout',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.1, 'min' => 1, 'max' => 8],
+	]);
+
+	$wp_customize->add_setting('antonia_mobile_footer_clearance_rem', [
+		'default'           => 8.5,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 6, 16, 8.5);
+		},
+	]);
+	$wp_customize->add_control('antonia_mobile_footer_clearance_rem', [
+		'label'       => __('Mobile Footer Clearance (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_layout',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.1, 'min' => 6, 'max' => 16],
+	]);
+
+	// ── Section: Typography ─────────────────────────────────────────────
+	$wp_customize->add_section('antonia_typography', [
+		'title'       => __('Typography', 'antonia-zanolli'),
+		'priority'    => 38,
+		'description' => __('Adjust core type sizes used across the theme.', 'antonia-zanolli'),
+	]);
+
+	$wp_customize->add_setting('antonia_base_text_size_rem', [
+		'default'           => 1.5,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 1, 2.4, 1.5);
+		},
+	]);
+	$wp_customize->add_control('antonia_base_text_size_rem', [
+		'label'       => __('Base Paragraph Size (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_typography',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.05, 'min' => 1, 'max' => 2.4],
+	]);
+
+	$wp_customize->add_setting('antonia_header_menu_font_size_rem', [
+		'default'           => 1.5,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 1, 2.2, 1.5);
+		},
+	]);
+	$wp_customize->add_control('antonia_header_menu_font_size_rem', [
+		'label'       => __('Header Menu Font Size (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_typography',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.05, 'min' => 1, 'max' => 2.2],
+	]);
+
+	$wp_customize->add_setting('antonia_header_title_max_size_rem', [
+		'default'           => 4,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 3, 6, 4);
+		},
+	]);
+	$wp_customize->add_control('antonia_header_title_max_size_rem', [
+		'label'       => __('Site Title Max Size (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_typography',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.1, 'min' => 3, 'max' => 6],
+	]);
+
+	// ── Section: Colors & Buttons ───────────────────────────────────────
+	$wp_customize->add_section('antonia_colors_buttons', [
+		'title'       => __('Colors & Buttons', 'antonia-zanolli'),
+		'priority'    => 39,
+		'description' => __('Customize footer colors and primary button styling.', 'antonia-zanolli'),
+	]);
+
+	$wp_customize->add_setting('antonia_footer_bg_color', [
+		'default'           => '#0d0c0a',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_footer_bg_color', [
+		'label'   => __('Footer Background Color', 'antonia-zanolli'),
+		'section' => 'antonia_colors_buttons',
+	]));
+
+	$wp_customize->add_setting('antonia_footer_text_color', [
+		'default'           => '#523717',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_footer_text_color', [
+		'label'   => __('Footer Text Color', 'antonia-zanolli'),
+		'section' => 'antonia_colors_buttons',
+	]));
+
+	$wp_customize->add_setting('antonia_footer_heading_color', [
+		'default'           => '#3a352c',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_footer_heading_color', [
+		'label'   => __('Footer Heading Color', 'antonia-zanolli'),
+		'section' => 'antonia_colors_buttons',
+	]));
+
+	$wp_customize->add_setting('antonia_button_bg_color', [
+		'default'           => '#c77e3f',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_button_bg_color', [
+		'label'   => __('Primary Button Background', 'antonia-zanolli'),
+		'section' => 'antonia_colors_buttons',
+	]));
+
+	$wp_customize->add_setting('antonia_button_text_color', [
+		'default'           => '#1f1b15',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_button_text_color', [
+		'label'   => __('Primary Button Text Color', 'antonia-zanolli'),
+		'section' => 'antonia_colors_buttons',
+	]));
+
+	$wp_customize->add_setting('antonia_button_radius_rem', [
+		'default'           => 0.25,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 0, 2, 0.25);
+		},
+	]);
+	$wp_customize->add_control('antonia_button_radius_rem', [
+		'label'       => __('Primary Button Radius (rem)', 'antonia-zanolli'),
+		'section'     => 'antonia_colors_buttons',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.05, 'min' => 0, 'max' => 2],
+	]);
+
 	// ── Section: Books Styling ───────────────────────────────────────────
 	$wp_customize->add_section('antonia_books_style', [
 		'title'       => __('Books Styling', 'antonia-zanolli'),
@@ -629,7 +850,9 @@ function antonia_customize_register($wp_customize)
 
 	$wp_customize->add_setting('antonia_series_heading_size', [
 		'default'           => 2,
-		'sanitize_callback' => 'floatval',
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 1.2, 4, 2);
+		},
 	]);
 	$wp_customize->add_control('antonia_series_heading_size', [
 		'label'       => __('Series Title Size (rem)', 'antonia-zanolli'),
@@ -640,7 +863,9 @@ function antonia_customize_register($wp_customize)
 
 	$wp_customize->add_setting('antonia_series_heading_letterspacing', [
 		'default'           => 0.15,
-		'sanitize_callback' => 'floatval',
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 0, 0.5, 0.15);
+		},
 	]);
 	$wp_customize->add_control('antonia_series_heading_letterspacing', [
 		'label'       => __('Series Title Letter Spacing (em)', 'antonia-zanolli'),
@@ -651,7 +876,9 @@ function antonia_customize_register($wp_customize)
 
 	$wp_customize->add_setting('antonia_series_description_size', [
 		'default'           => 1,
-		'sanitize_callback' => 'floatval',
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 0.8, 2, 1);
+		},
 	]);
 	$wp_customize->add_control('antonia_series_description_size', [
 		'label'       => __('Series Description Size (rem)', 'antonia-zanolli'),
@@ -662,7 +889,9 @@ function antonia_customize_register($wp_customize)
 
 	$wp_customize->add_setting('antonia_series_description_lineheight', [
 		'default'           => 1.6,
-		'sanitize_callback' => 'floatval',
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 1, 2.4, 1.6);
+		},
 	]);
 	$wp_customize->add_control('antonia_series_description_lineheight', [
 		'label'       => __('Series Description Line Height', 'antonia-zanolli'),
@@ -682,6 +911,19 @@ function antonia_print_customizer_css()
 	$series_tag_border_color    = get_theme_mod('antonia_series_tag_border_color', '#d9b992');
 	$series_tag_bg_color        = get_theme_mod('antonia_series_tag_bg_color', '#3a2b1f');
 	$book_subtitle_color        = get_theme_mod('antonia_book_subtitle_color', '#d9b992');
+	$header_menu_width_percent  = antonia_sanitize_int_range(get_theme_mod('antonia_header_menu_width_percent', 30), 16, 45, 30);
+	$header_menu_min_width_px   = antonia_sanitize_int_range(get_theme_mod('antonia_header_menu_min_width_px', 300), 140, 520, 300);
+	$content_top_gap_rem        = antonia_sanitize_float_range(get_theme_mod('antonia_content_top_gap_rem', 3), 1, 8, 3);
+	$mobile_footer_clearance    = antonia_sanitize_float_range(get_theme_mod('antonia_mobile_footer_clearance_rem', 8.5), 6, 16, 8.5);
+	$base_text_size             = antonia_sanitize_float_range(get_theme_mod('antonia_base_text_size_rem', 1.5), 1, 2.4, 1.5);
+	$header_menu_font_size      = antonia_sanitize_float_range(get_theme_mod('antonia_header_menu_font_size_rem', 1.5), 1, 2.2, 1.5);
+	$header_title_max_size      = antonia_sanitize_float_range(get_theme_mod('antonia_header_title_max_size_rem', 4), 3, 6, 4);
+	$footer_bg_color            = get_theme_mod('antonia_footer_bg_color', '#0d0c0a');
+	$footer_text_color          = get_theme_mod('antonia_footer_text_color', '#523717');
+	$footer_heading_color       = get_theme_mod('antonia_footer_heading_color', '#3a352c');
+	$button_bg_color            = get_theme_mod('antonia_button_bg_color', '#c77e3f');
+	$button_text_color          = get_theme_mod('antonia_button_text_color', '#1f1b15');
+	$button_radius_rem          = antonia_sanitize_float_range(get_theme_mod('antonia_button_radius_rem', 0.25), 0, 2, 0.25);
 	$series_heading_size        = (float) get_theme_mod('antonia_series_heading_size', 2);
 	$series_heading_letterspace = (float) get_theme_mod('antonia_series_heading_letterspacing', 0.15);
 	$series_desc_size           = (float) get_theme_mod('antonia_series_description_size', 1);
@@ -691,8 +933,26 @@ function antonia_print_customizer_css()
 	$series_heading_letterspace = max(0, min($series_heading_letterspace, 0.5));
 	$series_desc_size           = max(0.8, min($series_desc_size, 2));
 	$series_desc_line_height    = max(1, min($series_desc_line_height, 2.4));
+	$footer_bg_color            = sanitize_hex_color($footer_bg_color) ?: '#0d0c0a';
+	$footer_text_color          = sanitize_hex_color($footer_text_color) ?: '#523717';
+	$footer_heading_color       = sanitize_hex_color($footer_heading_color) ?: '#3a352c';
+	$button_bg_color            = sanitize_hex_color($button_bg_color) ?: '#c77e3f';
+	$button_text_color          = sanitize_hex_color($button_text_color) ?: '#1f1b15';
 
 	echo '<style id="antonia-customizer-vars">:root{' .
+		'--header-menu-width:' . esc_attr($header_menu_width_percent) . '%;' .
+		'--header-menu-min-width:' . esc_attr($header_menu_min_width_px) . 'px;' .
+		'--antonia-content-gap:' . esc_attr($content_top_gap_rem) . 'rem;' .
+		'--mobile-footer-clearance:' . esc_attr($mobile_footer_clearance) . 'rem;' .
+		'--antonia-base-text-size:' . esc_attr($base_text_size) . 'rem;' .
+		'--antonia-header-menu-font-size:' . esc_attr($header_menu_font_size) . 'rem;' .
+		'--antonia-header-title-max-size:' . esc_attr($header_title_max_size) . 'rem;' .
+		'--color-footer-bg:' . esc_attr($footer_bg_color) . ';' .
+		'--color-footer-text:' . esc_attr($footer_text_color) . ';' .
+		'--color-footer-heading:' . esc_attr($footer_heading_color) . ';' .
+		'--antonia-button-bg:' . esc_attr($button_bg_color) . ';' .
+		'--antonia-button-text:' . esc_attr($button_text_color) . ';' .
+		'--antonia-button-radius:' . esc_attr($button_radius_rem) . 'rem;' .
 		'--antonia-series-tag-text:' . esc_attr($series_tag_text_color) . ';' .
 		'--antonia-series-tag-border:' . esc_attr($series_tag_border_color) . ';' .
 		'--antonia-series-tag-bg:' . esc_attr($series_tag_bg_color) . ';' .
