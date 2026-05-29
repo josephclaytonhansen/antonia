@@ -1,4 +1,5 @@
 <?php
+
 /**
  * page.php
  *
@@ -12,14 +13,14 @@ get_header();
 <main>
 	<div class="new-content-section">
 
-		<?php if ( have_posts() ) : the_post(); ?>
+		<?php if (have_posts()) : the_post(); ?>
 
-		<article <?php post_class(); ?>>
-			<h2><?php the_title(); ?></h2>
-			<div class="post-content">
-				<?php the_content(); ?>
-			</div>
-		</article>
+			<article <?php post_class(); ?>>
+				<h2 class="page-title"><?php the_title(); ?></h2>
+				<div class="post-content">
+					<?php the_content(); ?>
+				</div>
+			</article>
 
 		<?php endif; ?>
 

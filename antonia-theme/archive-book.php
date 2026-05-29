@@ -20,7 +20,7 @@ get_header();
 <main>
     <div class="books-archive">
 
-        <h1><?php esc_html_e('Books', 'antonia-zanolli'); ?></h1>
+        <h1 class="books-archive-title"><?php esc_html_e('Books', 'antonia-zanolli'); ?></h1>
 
         <?php
         // ── Fetch every published book ──────────────────────────────────────
@@ -71,7 +71,7 @@ get_header();
                 $series_link = antonia_get_series_landing_url($term);
             ?>
                 <section class="books-series-group">
-                    <h2><a href="<?php echo esc_url($series_link); ?>"><?php echo esc_html(strtoupper($term->name)); ?></a></h2>
+                    <h2><a href="<?php echo esc_url($series_link); ?>"><?php echo esc_html($term->name); ?></a></h2>
                     <?php if ($description) : ?>
                         <p class="books-series-subtitle"><?php echo wp_kses_post($description); ?></p>
                     <?php endif; ?>

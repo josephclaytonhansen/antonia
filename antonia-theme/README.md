@@ -80,6 +80,16 @@ Layout and Spacing:
 - Desktop Top Gap Under Menu (rem)
 - Mobile Footer Clearance (rem)
 
+Theme Colors:
+
+- Site Background Color
+- Background Tint Color
+- Main Text Color
+- Hover Accent Color
+- Site Title Hover Color
+- Show Background Pattern
+- Hide Page Titles (pages, posts, and book titles)
+
 Typography:
 
 - Base Paragraph Size (rem)
@@ -98,6 +108,12 @@ Colors and Buttons:
 Footer:
 
 - Footer Notice
+
+Hero Decorations:
+
+- Show Hero Decorations
+- Left Hero Decoration
+- Right Hero Decoration
 
 ## 5) Blog and Gallery
 
@@ -155,6 +171,14 @@ You do not need to edit:
 - --header-menu-min-width
 
 Those are now controlled by Customizer values.
+
+Q: Can I change the series title from uppercase to lowercase?
+
+A: Yes. Use Appearance > Customize > Books Styling > Series Title Case.
+
+Q: Can I add the decorative images around the hero book cover?
+
+A: Yes. Turn on Appearance > Customize > Hero Decorations and upload the left/right images there.
 
 ## 7) Troubleshooting Checklist
 

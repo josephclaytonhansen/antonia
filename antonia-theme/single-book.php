@@ -66,7 +66,7 @@ get_header();
                         </a>
                     <?php endif; ?>
 
-                    <h1><?php the_title(); ?></h1>
+                    <h1 class="single-book-title"><?php the_title(); ?></h1>
 
                     <?php if ($subtitle) : ?>
                         <p class="single-book-subtitle"><?php echo esc_html($subtitle); ?></p>
