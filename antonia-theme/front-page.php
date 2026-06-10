@@ -13,12 +13,14 @@ get_header();
 <main>
 
 	<!-- ── Corner sketch decorations (homepage only) ─────────────────────── -->
-	<div class="corner-sketches">
-		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
-		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
-		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
-		<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
-	</div>
+	<?php if (get_theme_mod('antonia_show_corner_sketches', true)) : ?>
+		<div class="corner-sketches">
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
+		</div>
+	<?php endif; ?>
 
 	<!-- ── Hero ──────────────────────────────────────────────────────────── -->
 	<div class="hero">
@@ -55,13 +57,44 @@ get_header();
 		</a>
 
 		<!-- Extra decorative props near the book cover -->
-		<!-- Add your image paths below; remove the style="display:none" when ready -->
-		<div class="hero-prop hero-prop--left" style="display:none">
-			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/prop-notepad.webp'); ?>" alt="" />
-		</div>
-		<div class="hero-prop hero-prop--right" style="display:none">
-			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/prop-feather.webp'); ?>" alt="" />
-		</div>
+		<?php if (get_theme_mod('antonia_show_hero_props', false)) : ?>
+			<?php $_hero_prop_left = get_theme_mod('antonia_hero_prop_left_image', ''); ?>
+			<?php $_hero_prop_right = get_theme_mod('antonia_hero_prop_right_image', ''); ?>
+			<?php $_hero_prop_top_left = get_theme_mod('antonia_hero_prop_top_left_image', ''); ?>
+			<?php $_hero_prop_top_right = get_theme_mod('antonia_hero_prop_top_right_image', ''); ?>
+			<?php $_hero_prop_bottom_left = get_theme_mod('antonia_hero_prop_bottom_left_image', ''); ?>
+			<?php $_hero_prop_bottom_right = get_theme_mod('antonia_hero_prop_bottom_right_image', ''); ?>
+			<?php if ($_hero_prop_left) : ?>
+				<div class="hero-prop hero-prop--left">
+					<img src="<?php echo esc_url($_hero_prop_left); ?>" alt="" />
+				</div>
+			<?php endif; ?>
+			<?php if ($_hero_prop_right) : ?>
+				<div class="hero-prop hero-prop--right">
+					<img src="<?php echo esc_url($_hero_prop_right); ?>" alt="" />
+				</div>
+			<?php endif; ?>
+			<?php if ($_hero_prop_top_left) : ?>
+				<div class="hero-prop hero-prop--top-left">
+					<img src="<?php echo esc_url($_hero_prop_top_left); ?>" alt="" />
+				</div>
+			<?php endif; ?>
+			<?php if ($_hero_prop_top_right) : ?>
+				<div class="hero-prop hero-prop--top-right">
+					<img src="<?php echo esc_url($_hero_prop_top_right); ?>" alt="" />
+				</div>
+			<?php endif; ?>
+			<?php if ($_hero_prop_bottom_left) : ?>
+				<div class="hero-prop hero-prop--bottom-left">
+					<img src="<?php echo esc_url($_hero_prop_bottom_left); ?>" alt="" />
+				</div>
+			<?php endif; ?>
+			<?php if ($_hero_prop_bottom_right) : ?>
+				<div class="hero-prop hero-prop--bottom-right">
+					<img src="<?php echo esc_url($_hero_prop_bottom_right); ?>" alt="" />
+				</div>
+			<?php endif; ?>
+		<?php endif; ?>
 
 		<div class="scroll-down-container">
 			<div class="books-label">
