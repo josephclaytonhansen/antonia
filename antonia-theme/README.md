@@ -78,7 +78,9 @@ Layout and Spacing:
 - Header Menu Side Width (%)
 - Header Menu Min Width (px)
 - Desktop Top Gap Under Menu (rem)
-- Mobile Footer Clearance (rem)
+- Mobile Top Gap Under Menu (rem)
+- Desktop Gap: Menu to Site Title (rem)
+- Mobile Footer Extra Bottom Padding (rem)
 
 Theme Colors:
 
@@ -88,6 +90,7 @@ Theme Colors:
 - Hover Accent Color
 - Site Title Hover Color
 - Show Background Pattern
+- Show Background Tint Overlay
 - Hide Page Titles (pages, posts, and book titles)
 
 Typography:
@@ -114,6 +117,20 @@ Hero Decorations:
 - Show Hero Decorations
 - Left Hero Decoration
 - Right Hero Decoration
+- Top-Left Hero Decoration
+- Top-Right Hero Decoration
+- Bottom-Left Hero Decoration
+- Bottom-Right Hero Decoration
+- Show Framed Paintings (Corner Sketches)
+
+Recommended values (Layout and Spacing):
+
+- Header Menu Side Width (%): 20–34
+- Header Menu Min Width (px): 220–340
+- Desktop Top Gap Under Menu (rem): 1.5–4
+- Mobile Top Gap Under Menu (rem): 0.5–2.5
+- Desktop Gap: Menu to Site Title (rem): 0–1.5
+- Mobile Footer Extra Bottom Padding (rem): 0–2
 
 ## 5) Blog and Gallery
 
@@ -164,6 +181,8 @@ Use these controls:
 - Header Menu Side Width (%)
 - Header Menu Min Width (px)
 - Desktop Top Gap Under Menu (rem)
+- Mobile Top Gap Under Menu (rem)
+- Desktop Gap: Menu to Site Title (rem)
 
 You do not need to edit:
 
@@ -178,7 +197,11 @@ A: Yes. Use Appearance > Customize > Books Styling > Series Title Case.
 
 Q: Can I add the decorative images around the hero book cover?
 
-A: Yes. Turn on Appearance > Customize > Hero Decorations and upload the left/right images there.
+A: Yes. Turn on Appearance > Customize > Hero Decorations and upload any of the six image slots there.
+
+Q: Can I turn off the background tint entirely?
+
+A: Yes. Use Appearance > Customize > Theme Colors > Show Background Tint Overlay.
 
 ## 7) Troubleshooting Checklist
 

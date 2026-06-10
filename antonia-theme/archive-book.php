@@ -73,7 +73,7 @@ get_header();
                 <section class="books-series-group">
                     <h2><a href="<?php echo esc_url($series_link); ?>"><?php echo esc_html($term->name); ?></a></h2>
                     <?php if ($description) : ?>
-                        <p class="books-series-subtitle"><?php echo wp_kses_post($description); ?></p>
+                        <div class="books-series-subtitle"><?php echo wp_kses_post($description); ?></div>
                     <?php endif; ?>
 
                     <div class="books-grid">
