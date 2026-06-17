@@ -12,18 +12,20 @@ get_header();
 
 <main>
 
-	<!-- ── Corner sketch decorations (homepage only) ─────────────────────── -->
-	<?php if (get_theme_mod('antonia_show_corner_sketches', true)) : ?>
-		<div class="corner-sketches">
-			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
-			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
-			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
-			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
-		</div>
-	<?php endif; ?>
-
 	<!-- ── Hero ──────────────────────────────────────────────────────────── -->
 	<div class="hero">
+
+		<!-- Corner sketch decorations – inside .hero so they scroll with the page
+		     and don't jump on mobile (position:absolute relative to .hero). -->
+		<?php if (get_theme_mod('antonia_show_corner_sketches', true)) : ?>
+			<div class="corner-sketches">
+				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
+				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
+				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
+				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
+			</div>
+		<?php endif; ?>
+
 		<div class="hero-frame-container">
 			<div class="hero-frame-left" id="frame1">
 				<div class="hero-mask">
@@ -56,13 +58,13 @@ get_header();
 				alt="<?php echo esc_attr(get_bloginfo('name')); ?> – book cover" />
 		</a>
 
-		<!-- Extra decorative props near the book cover -->
+		<!-- Extra decorative props near the book cover (position fine-tuned via Customizer) -->
 		<?php if (get_theme_mod('antonia_show_hero_props', false)) : ?>
-			<?php $_hero_prop_left = get_theme_mod('antonia_hero_prop_left_image', ''); ?>
-			<?php $_hero_prop_right = get_theme_mod('antonia_hero_prop_right_image', ''); ?>
-			<?php $_hero_prop_top_left = get_theme_mod('antonia_hero_prop_top_left_image', ''); ?>
-			<?php $_hero_prop_top_right = get_theme_mod('antonia_hero_prop_top_right_image', ''); ?>
-			<?php $_hero_prop_bottom_left = get_theme_mod('antonia_hero_prop_bottom_left_image', ''); ?>
+			<?php $_hero_prop_left         = get_theme_mod('antonia_hero_prop_left_image', ''); ?>
+			<?php $_hero_prop_right        = get_theme_mod('antonia_hero_prop_right_image', ''); ?>
+			<?php $_hero_prop_top_left     = get_theme_mod('antonia_hero_prop_top_left_image', ''); ?>
+			<?php $_hero_prop_top_right    = get_theme_mod('antonia_hero_prop_top_right_image', ''); ?>
+			<?php $_hero_prop_bottom_left  = get_theme_mod('antonia_hero_prop_bottom_left_image', ''); ?>
 			<?php $_hero_prop_bottom_right = get_theme_mod('antonia_hero_prop_bottom_right_image', ''); ?>
 			<?php if ($_hero_prop_left) : ?>
 				<div class="hero-prop hero-prop--left">
@@ -138,8 +140,8 @@ get_header();
 						</div>
 					<?php
 					endforeach;
-				else : // Fallback: no books added yet – show placeholder
-					?>
+				else :
+				?>
 					<div class="book-item active" data-book-id="0">
 						<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/heartlessprince_kindle_500px.webp'); ?>"
 							alt="" class="book-cover" />
@@ -173,7 +175,7 @@ get_header();
 					<div class="excerpt">
 						<h3><a href="<?php echo esc_url(get_permalink()); ?>"><?php the_title(); ?></a></h3>
 						<div class="post-preview-content">
-							<?php echo antonia_get_post_preview_html(get_the_ID(), 2, 40); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped 
+							<?php echo antonia_get_post_preview_html(get_the_ID(), 2, 40); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							?>
 						</div>
 					</div>

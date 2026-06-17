@@ -10,13 +10,8 @@
 
 function antonia_setup()
 {
-	// Let WordPress manage <title>
 	add_theme_support('title-tag');
-
-	// Featured images on posts and pages
 	add_theme_support('post-thumbnails');
-
-	// HTML5 markup support
 	add_theme_support('html5', [
 		'search-form',
 		'comment-form',
@@ -26,7 +21,6 @@ function antonia_setup()
 		'navigation-widgets',
 	]);
 
-	// Navigation menus
 	register_nav_menus([
 		'header-left'  => __('Header – Left',    'antonia-zanolli'),
 		'header-right' => __('Header – Right',   'antonia-zanolli'),
@@ -42,7 +36,6 @@ function antonia_enqueue_scripts()
 {
 	$theme_version = wp_get_theme()->get('Version');
 
-	// Main theme stylesheet (style.css in theme root)
 	wp_enqueue_style(
 		'antonia-style',
 		get_stylesheet_uri(),
@@ -50,7 +43,6 @@ function antonia_enqueue_scripts()
 		$theme_version
 	);
 
-	// Google Fonts – preconnect hints go in header.php; the actual CSS sheet here
 	wp_enqueue_style(
 		'antonia-google-fonts',
 		'https://fonts.googleapis.com/css2?family=Caudex:ital,wght@0,400;0,700;1,400;1,700&family=Germania+One&family=Grenze+Gotisch:wght@100..900&family=Grenze:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap',
@@ -58,18 +50,14 @@ function antonia_enqueue_scripts()
 		null
 	);
 
-	// Mobile drawer (runs on every page)
-	// The drawer HTML is now server-rendered in header.php; this script only
-	// handles open/close behaviour and has no external dependencies.
 	wp_enqueue_script(
 		'antonia-mobile-menu',
 		get_template_directory_uri() . '/mobile-menu.js',
 		[],
 		$theme_version,
-		true  // footer
+		true
 	);
 
-	// Book carousel – front page only
 	if (is_front_page()) {
 		wp_enqueue_script(
 			'antonia-carousel',
@@ -79,8 +67,6 @@ function antonia_enqueue_scripts()
 			true
 		);
 
-		// Pass Book CPT data to the carousel script so it's editable from WP Admin.
-		// Books are ordered by the "Order" field (Page Attributes box in the editor).
 		$_carousel_posts = get_posts([
 			'post_type'      => 'book',
 			'posts_per_page' => 6,
@@ -101,11 +87,9 @@ function antonia_enqueue_scripts()
 			];
 		}
 
-		// antoniaCarouselBooks is read by carousel.js; empty array = use JS fallback
 		wp_localize_script('antonia-carousel', 'antoniaCarouselBooks', $_carousel_data);
 	}
 
-	// Lightbox – all pages except front page (galleries live on Art/Books/etc.)
 	if (! is_front_page()) {
 		wp_enqueue_script(
 			'antonia-lightbox',
@@ -122,10 +106,6 @@ add_action('wp_enqueue_scripts', 'antonia_enqueue_scripts');
 
 /**
  * Return the best public URL for a book series term.
- *
- * If a normal Page exists with the same slug as the series term,
- * that page is used as the destination. Otherwise, the taxonomy archive link
- * is returned.
  */
 function antonia_get_series_landing_url($term)
 {
@@ -133,7 +113,6 @@ function antonia_get_series_landing_url($term)
 		return '';
 	}
 
-	// Match by page slug, even if the page is nested under a parent page.
 	$_series_pages = get_posts([
 		'post_type'      => 'page',
 		'name'           => $term->slug,
@@ -195,6 +174,27 @@ function antonia_sanitize_int_range($value, $min, $max, $default)
 }
 
 /**
+ * Sanitize signed integer customizer fields (allow negative values for offsets).
+ */
+function antonia_sanitize_signed_int($value, $min, $max, $default)
+{
+	$_raw = trim((string) $value);
+	if ($_raw === '' || ! is_numeric($_raw)) {
+		return (int) $default;
+	}
+
+	$_num = (int) round((float) $_raw);
+	if ($_num < $min) {
+		return (int) $min;
+	}
+	if ($_num > $max) {
+		return (int) $max;
+	}
+
+	return $_num;
+}
+
+/**
  * Sanitize checkbox-style settings.
  */
 function antonia_sanitize_checkbox($value)
@@ -213,10 +213,6 @@ function antonia_sanitize_select($value, $choices, $default)
 
 /**
  * Build display-ready buy-link buttons for a book.
- *
- * Supports two dashboard fields:
- *  1. Legacy single URL field (`_book_buy_link`)
- *  2. Multi-link textarea (`_book_buy_links`) with one `Label|URL` per line
  */
 function antonia_get_book_buy_links($post_id)
 {
@@ -259,8 +255,6 @@ function antonia_get_book_buy_links($post_id)
 
 /**
  * Render a formatted post preview with basic Gutenberg block styling.
- *
- * This is used for excerpt cards/listings when no manual excerpt is set.
  */
 function antonia_get_post_preview_html($post = null, $max_blocks = 2, $word_limit = 55)
 {
@@ -309,10 +303,6 @@ function antonia_get_post_preview_html($post = null, $max_blocks = 2, $word_limi
 
 // ─── Excerpt Customisation ────────────────────────────────────────────────────
 
-/**
- * Excerpt length: 55 words on the Blog listing page, 30 everywhere else.
- * To change these, adjust the numbers below.
- */
 function antonia_excerpt_length($length)
 {
 	if (is_home() || is_archive()) {
@@ -328,7 +318,7 @@ function antonia_excerpt_more($more)
 }
 add_filter('excerpt_more', 'antonia_excerpt_more');
 
-// ─── Add wp_body_open support for older WordPress versions ───────────────────
+// ─── wp_body_open support ───────────────────────────────────────────────────
 
 if (! function_exists('wp_body_open')) {
 	function wp_body_open()
@@ -339,19 +329,14 @@ if (! function_exists('wp_body_open')) {
 
 // ─── Custom Nav-Menu Walkers ──────────────────────────────────────────────────
 
-/**
- * Header walker: outputs <a href="…"><h3>Label</h3></a> per item.
- * Used for the desktop header-left and header-right menus.
- */
 class Antonia_Header_Walker extends Walker_Nav_Menu
 {
-
 	public function start_lvl(&$output, $depth = 0, $args = null) {}
 	public function end_lvl(&$output, $depth = 0, $args = null) {}
 
 	public function start_el(&$output, $data_object, $depth = 0, $args = null, $current_object_id = 0)
 	{
-		if ($depth > 0) return; // top-level items only
+		if ($depth > 0) return;
 
 		$item = $data_object;
 
@@ -380,13 +365,8 @@ class Antonia_Header_Walker extends Walker_Nav_Menu
 	public function end_el(&$output, $data_object, $depth = 0, $args = null) {}
 }
 
-/**
- * Plain-link walker: outputs <a href="…">Label</a> per item.
- * Used for the mobile drawer and footer menus.
- */
 class Antonia_Plain_Walker extends Walker_Nav_Menu
 {
-
 	public function start_lvl(&$output, $depth = 0, $args = null) {}
 	public function end_lvl(&$output, $depth = 0, $args = null) {}
 
@@ -423,19 +403,8 @@ class Antonia_Plain_Walker extends Walker_Nav_Menu
 
 // ─── Book Custom Post Type & Taxonomy ────────────────────────────────────────
 
-/**
- * Register the 'book' custom post type and 'book_series' taxonomy.
- *
- * Books appear at /books/ (archive) and /books/book-slug/ (single).
- * Book Series appear at /book-series/series-slug/.
- *
- * After activating or updating the theme, visit Settings › Permalinks and
- * click Save to flush rewrite rules.
- */
 function antonia_register_books()
 {
-
-	// ── Taxonomy: Book Series ──────────────────────────────────────────────
 	register_taxonomy('book_series', 'book', [
 		'label'              => __('Book Series', 'antonia-zanolli'),
 		'labels'             => [
@@ -447,14 +416,13 @@ function antonia_register_books()
 			'search_items'  => __('Search Series',     'antonia-zanolli'),
 			'all_items'     => __('All Series',        'antonia-zanolli'),
 		],
-		'hierarchical'       => true,      // acts like categories (parent/child)
+		'hierarchical'       => true,
 		'public'             => true,
 		'show_ui'            => true,
 		'show_admin_column'  => true,
 		'rewrite'            => ['slug' => 'book-series'],
 	]);
 
-	// ── Post Type: Book ────────────────────────────────────────────────────
 	register_post_type('book', [
 		'label'               => __('Books', 'antonia-zanolli'),
 		'labels'              => [
@@ -470,7 +438,7 @@ function antonia_register_books()
 		],
 		'description'         => __("Antonia's published books.", 'antonia-zanolli'),
 		'public'              => true,
-		'has_archive'         => 'books',   // archive at /books/
+		'has_archive'         => 'books',
 		'rewrite'             => ['slug' => 'books'],
 		'menu_icon'           => 'dashicons-book-alt',
 		'menu_position'       => 5,
@@ -500,9 +468,9 @@ add_action('add_meta_boxes', 'antonia_book_meta_box');
 function antonia_book_meta_box_html($post)
 {
 	wp_nonce_field('antonia_book_meta_save', 'antonia_book_meta_nonce');
-	$subtitle = get_post_meta($post->ID, '_book_subtitle', true);
-	$buy_link = get_post_meta($post->ID, '_book_buy_link', true);
-	$buy_links = get_post_meta($post->ID, '_book_buy_links', true);
+	$subtitle          = get_post_meta($post->ID, '_book_subtitle', true);
+	$buy_link          = get_post_meta($post->ID, '_book_buy_link', true);
+	$buy_links         = get_post_meta($post->ID, '_book_buy_links', true);
 	$carousel_priority = get_post_meta($post->ID, '_book_carousel_priority', true);
 ?>
 	<p>
@@ -551,14 +519,10 @@ function antonia_book_meta_save($post_id)
 
 		foreach ($_raw_lines as $_line) {
 			$_line = trim((string) $_line);
-			if ($_line === '') {
-				continue;
-			}
+			if ($_line === '') continue;
 
 			$_parts = array_map('trim', explode('|', $_line, 2));
-			if (count($_parts) !== 2) {
-				continue;
-			}
+			if (count($_parts) !== 2) continue;
 
 			$_label = sanitize_text_field($_parts[0]);
 			$_url   = esc_url_raw($_parts[1]);
@@ -578,14 +542,6 @@ add_action('save_post', 'antonia_book_meta_save');
 
 // ─── Theme Customizer ─────────────────────────────────────────────────────────
 
-/**
- * Register Customizer sections and settings.
- * Editable via Appearance › Customize in WP Admin.
- *
- * Settings exposed:
- *  – Homepage Hero: book cover image, book cover link URL, scroll-down badge text
- *  – Footer: the notice line (e.g. "not generated by AI")
- */
 function antonia_customize_register($wp_customize)
 {
 
@@ -595,7 +551,6 @@ function antonia_customize_register($wp_customize)
 		'priority' => 30,
 	]);
 
-	// Hero book cover image (uploaded via media library)
 	$wp_customize->add_setting('antonia_hero_book_image', [
 		'default'           => '',
 		'sanitize_callback' => 'esc_url_raw',
@@ -609,7 +564,6 @@ function antonia_customize_register($wp_customize)
 		])
 	);
 
-	// Hero book cover link URL
 	$wp_customize->add_setting('antonia_hero_book_url', [
 		'default'           => '',
 		'sanitize_callback' => 'esc_url_raw',
@@ -621,7 +575,6 @@ function antonia_customize_register($wp_customize)
 		'type'        => 'url',
 	]);
 
-	// Scroll-down badge text
 	$wp_customize->add_setting('antonia_scroll_label', [
 		'default'           => 'books',
 		'sanitize_callback' => 'sanitize_text_field',
@@ -634,13 +587,30 @@ function antonia_customize_register($wp_customize)
 		'type'        => 'text',
 	]);
 
+	$wp_customize->add_setting('antonia_scroll_badge_bg_color', [
+		'default'           => '#3d1414',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_scroll_badge_bg_color', [
+		'label'   => __('Hero Scroll Badge Background', 'antonia-zanolli'),
+		'section' => 'antonia_hero',
+	]));
+
+	$wp_customize->add_setting('antonia_scroll_badge_text_color', [
+		'default'           => '#d4c5b0',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_scroll_badge_text_color', [
+		'label'   => __('Hero Scroll Badge Text', 'antonia-zanolli'),
+		'section' => 'antonia_hero',
+	]));
+
 	// ── Section: Footer ───────────────────────────────────────────────────
 	$wp_customize->add_section('antonia_footer', [
 		'title'    => __('Footer', 'antonia-zanolli'),
 		'priority' => 35,
 	]);
 
-	// Footer notice line
 	$wp_customize->add_setting('antonia_footer_notice', [
 		'default'           => 'The content on this site was not generated by AI.',
 		'sanitize_callback' => 'sanitize_text_field',
@@ -667,7 +637,7 @@ function antonia_customize_register($wp_customize)
 	]);
 	$wp_customize->add_control('antonia_header_menu_width_percent', [
 		'label'       => __('Header Menu Side Width (%)', 'antonia-zanolli'),
-		'description' => __('How much space each side menu group takes on desktop. Typical range: 20–34.', 'antonia-zanolli'),
+		'description' => __('How much space each side menu group takes on desktop (16–45). Default: 30.', 'antonia-zanolli'),
 		'section'     => 'antonia_layout',
 		'type'        => 'number',
 		'input_attrs' => ['step' => 1, 'min' => 16, 'max' => 45],
@@ -681,7 +651,7 @@ function antonia_customize_register($wp_customize)
 	]);
 	$wp_customize->add_control('antonia_header_menu_min_width_px', [
 		'label'       => __('Header Menu Min Width (px)', 'antonia-zanolli'),
-		'description' => __('Minimum width for each side menu on desktop. Typical range: 220–340.', 'antonia-zanolli'),
+		'description' => __('Minimum width for each side menu on desktop (140–520 px). Default: 300.', 'antonia-zanolli'),
 		'section'     => 'antonia_layout',
 		'type'        => 'number',
 		'input_attrs' => ['step' => 1, 'min' => 140, 'max' => 520],
@@ -694,8 +664,8 @@ function antonia_customize_register($wp_customize)
 		},
 	]);
 	$wp_customize->add_control('antonia_content_top_gap_rem', [
-		'label'       => __('Desktop Top Gap Under Menu (rem)', 'antonia-zanolli'),
-		'description' => __('Desktop spacing from fixed header to main content. Typical range: 1.5–4.', 'antonia-zanolli'),
+		'label'       => __('Desktop: Gap Below Menu (rem)', 'antonia-zanolli'),
+		'description' => __('Space from the fixed header down to page content on desktop (1–8 rem). Default: 3. Increase to push content lower; decrease to bring it closer.', 'antonia-zanolli'),
 		'section'     => 'antonia_layout',
 		'type'        => 'number',
 		'input_attrs' => ['step' => 0.1, 'min' => 1, 'max' => 8],
@@ -708,8 +678,8 @@ function antonia_customize_register($wp_customize)
 		},
 	]);
 	$wp_customize->add_control('antonia_content_top_gap_mobile_rem', [
-		'label'       => __('Mobile Top Gap Under Menu (rem)', 'antonia-zanolli'),
-		'description' => __('Mobile spacing from fixed header to main content. Typical range: 0.5–2.5.', 'antonia-zanolli'),
+		'label'       => __('Mobile: Gap Below Menu (rem)', 'antonia-zanolli'),
+		'description' => __('Space from the fixed header down to page content on mobile (0–6 rem). Default: 1.5. Increase to push content lower; decrease to bring it closer.', 'antonia-zanolli'),
 		'section'     => 'antonia_layout',
 		'type'        => 'number',
 		'input_attrs' => ['step' => 0.1, 'min' => 0, 'max' => 6],
@@ -722,8 +692,8 @@ function antonia_customize_register($wp_customize)
 		},
 	]);
 	$wp_customize->add_control('antonia_menu_title_gap_rem', [
-		'label'       => __('Desktop Gap: Menu to Site Title (rem)', 'antonia-zanolli'),
-		'description' => __('Extra spacing between side menus and center title on desktop. Typical range: 0–1.5.', 'antonia-zanolli'),
+		'label'       => __('Desktop: Gap Between Menu Items & Site Title (rem)', 'antonia-zanolli'),
+		'description' => __('Adds horizontal padding between the left/right menus and the site title in the centre on desktop (0–4 rem). Default: 0. Increase to push the menu items outward.', 'antonia-zanolli'),
 		'section'     => 'antonia_layout',
 		'type'        => 'number',
 		'input_attrs' => ['step' => 0.1, 'min' => 0, 'max' => 4],
@@ -737,7 +707,7 @@ function antonia_customize_register($wp_customize)
 	]);
 	$wp_customize->add_control('antonia_mobile_footer_clearance_rem', [
 		'label'       => __('Mobile Footer Extra Bottom Padding (rem)', 'antonia-zanolli'),
-		'description' => __('Extra bottom padding inside the mobile footer. Typical range: 0–2.', 'antonia-zanolli'),
+		'description' => __('Extra bottom padding inside the mobile footer (0–4 rem). Default: 1.', 'antonia-zanolli'),
 		'section'     => 'antonia_layout',
 		'type'        => 'number',
 		'input_attrs' => ['step' => 0.1, 'min' => 0, 'max' => 4],
@@ -764,8 +734,9 @@ function antonia_customize_register($wp_customize)
 		'sanitize_callback' => 'sanitize_hex_color',
 	]);
 	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_bg_tint_color', [
-		'label'   => __('Background Tint Color', 'antonia-zanolli'),
-		'section' => 'antonia_theme_colors',
+		'label'       => __('Background Tint Color', 'antonia-zanolli'),
+		'description' => __('The colour overlaid on top of the background pattern. Use "Show Background Tint Overlay" below to hide it entirely.', 'antonia-zanolli'),
+		'section'     => 'antonia_theme_colors',
 	]));
 
 	$wp_customize->add_setting('antonia_show_background_tint', [
@@ -774,7 +745,7 @@ function antonia_customize_register($wp_customize)
 	]);
 	$wp_customize->add_control('antonia_show_background_tint', [
 		'label'       => __('Show Background Tint Overlay', 'antonia-zanolli'),
-		'description' => __('Turn this off to show the pattern/background color without tint.', 'antonia-zanolli'),
+		'description' => __('Uncheck to remove the tint and show the background colour / pattern without any overlay.', 'antonia-zanolli'),
 		'section'     => 'antonia_theme_colors',
 		'type'        => 'checkbox',
 	]);
@@ -876,107 +847,216 @@ function antonia_customize_register($wp_customize)
 	$wp_customize->add_section('antonia_hero_decor', [
 		'title'       => __('Hero Decorations', 'antonia-zanolli'),
 		'priority'    => 36,
-		'description' => __('Optional decorative images beside the homepage hero book cover.', 'antonia-zanolli'),
+		'description' => __('Optional decorative images beside and around the homepage hero book cover. Use the offset controls to fine-tune each image\'s position.', 'antonia-zanolli'),
 	]);
 
-	$wp_customize->add_setting('antonia_show_hero_props', [
-		'default'           => false,
-		'sanitize_callback' => 'antonia_sanitize_checkbox',
-	]);
-	$wp_customize->add_control('antonia_show_hero_props', [
-		'label'   => __('Show Hero Decorations', 'antonia-zanolli'),
-		'section' => 'antonia_hero_decor',
-		'type'    => 'checkbox',
-	]);
-
-	$wp_customize->add_setting('antonia_hero_prop_left_image', [
-		'default'           => '',
-		'sanitize_callback' => 'esc_url_raw',
-	]);
-	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_left_image', [
-		'label'       => __('Left Hero Decoration', 'antonia-zanolli'),
-		'description' => __('Optional image to place left of the homepage hero book cover.', 'antonia-zanolli'),
-		'section'     => 'antonia_hero_decor',
-	]));
-
-	$wp_customize->add_setting('antonia_hero_prop_right_image', [
-		'default'           => '',
-		'sanitize_callback' => 'esc_url_raw',
-	]);
-	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_right_image', [
-		'label'       => __('Right Hero Decoration', 'antonia-zanolli'),
-		'description' => __('Optional image to place right of the homepage hero book cover.', 'antonia-zanolli'),
-		'section'     => 'antonia_hero_decor',
-	]));
-
-	$wp_customize->add_setting('antonia_hero_prop_top_left_image', [
-		'default'           => '',
-		'sanitize_callback' => 'esc_url_raw',
-	]);
-	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_top_left_image', [
-		'label'       => __('Top-Left Hero Decoration', 'antonia-zanolli'),
-		'description' => __('Optional image near the top-left of the hero book.', 'antonia-zanolli'),
-		'section'     => 'antonia_hero_decor',
-	]));
-
-	$wp_customize->add_setting('antonia_hero_prop_top_right_image', [
-		'default'           => '',
-		'sanitize_callback' => 'esc_url_raw',
-	]);
-	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_top_right_image', [
-		'label'       => __('Top-Right Hero Decoration', 'antonia-zanolli'),
-		'description' => __('Optional image near the top-right of the hero book.', 'antonia-zanolli'),
-		'section'     => 'antonia_hero_decor',
-	]));
-
-	$wp_customize->add_setting('antonia_hero_prop_bottom_left_image', [
-		'default'           => '',
-		'sanitize_callback' => 'esc_url_raw',
-	]);
-	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_bottom_left_image', [
-		'label'       => __('Bottom-Left Hero Decoration', 'antonia-zanolli'),
-		'description' => __('Optional image near the bottom-left of the hero book.', 'antonia-zanolli'),
-		'section'     => 'antonia_hero_decor',
-	]));
-
-	$wp_customize->add_setting('antonia_hero_prop_bottom_right_image', [
-		'default'           => '',
-		'sanitize_callback' => 'esc_url_raw',
-	]);
-	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_bottom_right_image', [
-		'label'       => __('Bottom-Right Hero Decoration', 'antonia-zanolli'),
-		'description' => __('Optional image near the bottom-right of the hero book.', 'antonia-zanolli'),
-		'section'     => 'antonia_hero_decor',
-	]));
-
+	// ── Framed paintings (corner sketches) – separate toggle ──
 	$wp_customize->add_setting('antonia_show_corner_sketches', [
 		'default'           => true,
 		'sanitize_callback' => 'antonia_sanitize_checkbox',
 	]);
 	$wp_customize->add_control('antonia_show_corner_sketches', [
 		'label'       => __('Show Framed Paintings (Corner Sketches)', 'antonia-zanolli'),
-		'description' => __('Toggle the four corner framed painting decorations on the homepage.', 'antonia-zanolli'),
+		'description' => __('Toggle the four decorative framed paintings in the corners of the homepage hero.', 'antonia-zanolli'),
 		'section'     => 'antonia_hero_decor',
 		'type'        => 'checkbox',
 	]);
 
-	$wp_customize->add_setting('antonia_scroll_badge_bg_color', [
-		'default'           => '#3d1414',
-		'sanitize_callback' => 'sanitize_hex_color',
+	// ── Hero props (the extra images around the book cover) ──
+	$wp_customize->add_setting('antonia_show_hero_props', [
+		'default'           => false,
+		'sanitize_callback' => 'antonia_sanitize_checkbox',
 	]);
-	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_scroll_badge_bg_color', [
-		'label'   => __('Hero Scroll Badge Background', 'antonia-zanolli'),
-		'section' => 'antonia_hero',
-	]));
+	$wp_customize->add_control('antonia_show_hero_props', [
+		'label'       => __('Show Additional Hero Images', 'antonia-zanolli'),
+		'description' => __('Toggle the extra decorative images placed around the hero book cover.', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'checkbox',
+	]);
 
-	$wp_customize->add_setting('antonia_scroll_badge_text_color', [
-		'default'           => '#d4c5b0',
-		'sanitize_callback' => 'sanitize_hex_color',
+	// ── Left prop ──
+	$wp_customize->add_setting('antonia_hero_prop_left_image', [
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
 	]);
-	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_scroll_badge_text_color', [
-		'label'   => __('Hero Scroll Badge Text', 'antonia-zanolli'),
-		'section' => 'antonia_hero',
+	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_left_image', [
+		'label'   => __('Left Hero Image', 'antonia-zanolli'),
+		'section' => 'antonia_hero_decor',
 	]));
+	$wp_customize->add_setting('antonia_hero_prop_left_offset_x', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_left_offset_x', [
+		'label'       => __('Left Image – Horizontal Offset (px)', 'antonia-zanolli'),
+		'description' => __('Negative = left, positive = right.', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+	$wp_customize->add_setting('antonia_hero_prop_left_offset_y', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_left_offset_y', [
+		'label'       => __('Left Image – Vertical Offset (px)', 'antonia-zanolli'),
+		'description' => __('Negative = up, positive = down.', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+
+	// ── Right prop ──
+	$wp_customize->add_setting('antonia_hero_prop_right_image', [
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	]);
+	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_right_image', [
+		'label'   => __('Right Hero Image', 'antonia-zanolli'),
+		'section' => 'antonia_hero_decor',
+	]));
+	$wp_customize->add_setting('antonia_hero_prop_right_offset_x', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_right_offset_x', [
+		'label'       => __('Right Image – Horizontal Offset (px)', 'antonia-zanolli'),
+		'description' => __('Negative = left, positive = right.', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+	$wp_customize->add_setting('antonia_hero_prop_right_offset_y', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_right_offset_y', [
+		'label'       => __('Right Image – Vertical Offset (px)', 'antonia-zanolli'),
+		'description' => __('Negative = up, positive = down.', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+
+	// ── Top-left prop ──
+	$wp_customize->add_setting('antonia_hero_prop_top_left_image', [
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	]);
+	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_top_left_image', [
+		'label'   => __('Top-Left Hero Image', 'antonia-zanolli'),
+		'section' => 'antonia_hero_decor',
+	]));
+	$wp_customize->add_setting('antonia_hero_prop_top_left_offset_x', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_top_left_offset_x', [
+		'label'       => __('Top-Left Image – Horizontal Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+	$wp_customize->add_setting('antonia_hero_prop_top_left_offset_y', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_top_left_offset_y', [
+		'label'       => __('Top-Left Image – Vertical Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+
+	// ── Top-right prop ──
+	$wp_customize->add_setting('antonia_hero_prop_top_right_image', [
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	]);
+	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_top_right_image', [
+		'label'   => __('Top-Right Hero Image', 'antonia-zanolli'),
+		'section' => 'antonia_hero_decor',
+	]));
+	$wp_customize->add_setting('antonia_hero_prop_top_right_offset_x', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_top_right_offset_x', [
+		'label'       => __('Top-Right Image – Horizontal Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+	$wp_customize->add_setting('antonia_hero_prop_top_right_offset_y', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_top_right_offset_y', [
+		'label'       => __('Top-Right Image – Vertical Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+
+	// ── Bottom-left prop ──
+	$wp_customize->add_setting('antonia_hero_prop_bottom_left_image', [
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	]);
+	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_bottom_left_image', [
+		'label'   => __('Bottom-Left Hero Image', 'antonia-zanolli'),
+		'section' => 'antonia_hero_decor',
+	]));
+	$wp_customize->add_setting('antonia_hero_prop_bottom_left_offset_x', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_bottom_left_offset_x', [
+		'label'       => __('Bottom-Left Image – Horizontal Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+	$wp_customize->add_setting('antonia_hero_prop_bottom_left_offset_y', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_bottom_left_offset_y', [
+		'label'       => __('Bottom-Left Image – Vertical Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+
+	// ── Bottom-right prop ──
+	$wp_customize->add_setting('antonia_hero_prop_bottom_right_image', [
+		'default'           => '',
+		'sanitize_callback' => 'esc_url_raw',
+	]);
+	$wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'antonia_hero_prop_bottom_right_image', [
+		'label'   => __('Bottom-Right Hero Image', 'antonia-zanolli'),
+		'section' => 'antonia_hero_decor',
+	]));
+	$wp_customize->add_setting('antonia_hero_prop_bottom_right_offset_x', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_bottom_right_offset_x', [
+		'label'       => __('Bottom-Right Image – Horizontal Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
+	$wp_customize->add_setting('antonia_hero_prop_bottom_right_offset_y', [
+		'default'           => 0,
+		'sanitize_callback' => function ($v) { return antonia_sanitize_signed_int($v, -400, 400, 0); },
+	]);
+	$wp_customize->add_control('antonia_hero_prop_bottom_right_offset_y', [
+		'label'       => __('Bottom-Right Image – Vertical Offset (px)', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 4, 'min' => -400, 'max' => 400],
+	]);
 
 	// ── Section: Colors & Buttons ───────────────────────────────────────
 	$wp_customize->add_section('antonia_colors_buttons', [
@@ -1144,10 +1224,9 @@ function antonia_customize_register($wp_customize)
 			$choices = [
 				'uppercase'  => __('Uppercase', 'antonia-zanolli'),
 				'lowercase'  => __('Lowercase', 'antonia-zanolli'),
-				'capitalize'  => __('Capitalize', 'antonia-zanolli'),
+				'capitalize' => __('Capitalize', 'antonia-zanolli'),
 				'none'       => __('None', 'antonia-zanolli'),
 			];
-
 			return antonia_sanitize_select($value, $choices, 'uppercase');
 		},
 	]);
@@ -1190,33 +1269,36 @@ function antonia_print_customizer_css()
 	$header_title_max_size      = antonia_sanitize_float_range(get_theme_mod('antonia_header_title_max_size_rem', 4), 3, 6, 4);
 	$scroll_badge_bg            = sanitize_hex_color(get_theme_mod('antonia_scroll_badge_bg_color', '#3d1414')) ?: '#3d1414';
 	$scroll_badge_text          = sanitize_hex_color(get_theme_mod('antonia_scroll_badge_text_color', '#d4c5b0')) ?: '#d4c5b0';
-	$footer_bg_color            = get_theme_mod('antonia_footer_bg_color', '#0d0c0a');
-	$footer_text_color          = get_theme_mod('antonia_footer_text_color', '#523717');
-	$footer_heading_color       = get_theme_mod('antonia_footer_heading_color', '#3a352c');
-	$button_bg_color            = get_theme_mod('antonia_button_bg_color', '#c77e3f');
-	$button_text_color          = get_theme_mod('antonia_button_text_color', '#1f1b15');
+	$footer_bg_color            = sanitize_hex_color(get_theme_mod('antonia_footer_bg_color', '#0d0c0a')) ?: '#0d0c0a';
+	$footer_text_color          = sanitize_hex_color(get_theme_mod('antonia_footer_text_color', '#523717')) ?: '#523717';
+	$footer_heading_color       = sanitize_hex_color(get_theme_mod('antonia_footer_heading_color', '#3a352c')) ?: '#3a352c';
+	$button_bg_color            = sanitize_hex_color(get_theme_mod('antonia_button_bg_color', '#c77e3f')) ?: '#c77e3f';
+	$button_text_color          = sanitize_hex_color(get_theme_mod('antonia_button_text_color', '#1f1b15')) ?: '#1f1b15';
 	$button_radius_rem          = antonia_sanitize_float_range(get_theme_mod('antonia_button_radius_rem', 0.25), 0, 2, 0.25);
-	$series_heading_size        = (float) get_theme_mod('antonia_series_heading_size', 2);
-	$series_heading_letterspace = (float) get_theme_mod('antonia_series_heading_letterspacing', 0.15);
-	$series_desc_size           = (float) get_theme_mod('antonia_series_description_size', 1);
-	$series_desc_line_height    = (float) get_theme_mod('antonia_series_description_lineheight', 1.6);
-	$series_title_transform     = get_theme_mod('antonia_series_title_transform', 'uppercase');
-
-	$series_heading_size        = max(1.2, min($series_heading_size, 4));
-	$series_heading_letterspace = max(0, min($series_heading_letterspace, 0.5));
-	$series_desc_size           = max(0.8, min($series_desc_size, 2));
-	$series_desc_line_height    = max(1, min($series_desc_line_height, 2.4));
-	$series_title_transform     = antonia_sanitize_select($series_title_transform, [
+	$series_heading_size        = antonia_sanitize_float_range(get_theme_mod('antonia_series_heading_size', 2), 1.2, 4, 2);
+	$series_heading_letterspace = antonia_sanitize_float_range(get_theme_mod('antonia_series_heading_letterspacing', 0.15), 0, 0.5, 0.15);
+	$series_desc_size           = antonia_sanitize_float_range(get_theme_mod('antonia_series_description_size', 1), 0.8, 2, 1);
+	$series_desc_line_height    = antonia_sanitize_float_range(get_theme_mod('antonia_series_description_lineheight', 1.6), 1, 2.4, 1.6);
+	$series_title_transform     = antonia_sanitize_select(get_theme_mod('antonia_series_title_transform', 'uppercase'), [
 		'uppercase'  => 'uppercase',
 		'lowercase'  => 'lowercase',
 		'capitalize' => 'capitalize',
 		'none'       => 'none',
 	], 'uppercase');
-	$footer_bg_color            = sanitize_hex_color($footer_bg_color) ?: '#0d0c0a';
-	$footer_text_color          = sanitize_hex_color($footer_text_color) ?: '#523717';
-	$footer_heading_color       = sanitize_hex_color($footer_heading_color) ?: '#3a352c';
-	$button_bg_color            = sanitize_hex_color($button_bg_color) ?: '#c77e3f';
-	$button_text_color          = sanitize_hex_color($button_text_color) ?: '#1f1b15';
+
+	// Hero prop offsets
+	$prop_left_x        = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_left_offset_x', 0), -400, 400, 0);
+	$prop_left_y        = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_left_offset_y', 0), -400, 400, 0);
+	$prop_right_x       = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_right_offset_x', 0), -400, 400, 0);
+	$prop_right_y       = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_right_offset_y', 0), -400, 400, 0);
+	$prop_tl_x          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_top_left_offset_x', 0), -400, 400, 0);
+	$prop_tl_y          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_top_left_offset_y', 0), -400, 400, 0);
+	$prop_tr_x          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_top_right_offset_x', 0), -400, 400, 0);
+	$prop_tr_y          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_top_right_offset_y', 0), -400, 400, 0);
+	$prop_bl_x          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_bottom_left_offset_x', 0), -400, 400, 0);
+	$prop_bl_y          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_bottom_left_offset_y', 0), -400, 400, 0);
+	$prop_br_x          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_bottom_right_offset_x', 0), -400, 400, 0);
+	$prop_br_y          = antonia_sanitize_signed_int(get_theme_mod('antonia_hero_prop_bottom_right_offset_y', 0), -400, 400, 0);
 
 	echo '<style id="antonia-customizer-vars">:root{' .
 		'--bg-tint:' . esc_attr($bg_tint_color) . ';' .
@@ -1250,6 +1332,18 @@ function antonia_print_customizer_css()
 		'--antonia-series-description-size:' . esc_attr($series_desc_size) . 'rem;' .
 		'--antonia-series-title-transform:' . esc_attr($series_title_transform) . ';' .
 		'--antonia-series-description-line-height:' . esc_attr($series_desc_line_height) . ';' .
+		'--hero-prop-left-x:' . esc_attr($prop_left_x) . 'px;' .
+		'--hero-prop-left-y:' . esc_attr($prop_left_y) . 'px;' .
+		'--hero-prop-right-x:' . esc_attr($prop_right_x) . 'px;' .
+		'--hero-prop-right-y:' . esc_attr($prop_right_y) . 'px;' .
+		'--hero-prop-top-left-x:' . esc_attr($prop_tl_x) . 'px;' .
+		'--hero-prop-top-left-y:' . esc_attr($prop_tl_y) . 'px;' .
+		'--hero-prop-top-right-x:' . esc_attr($prop_tr_x) . 'px;' .
+		'--hero-prop-top-right-y:' . esc_attr($prop_tr_y) . 'px;' .
+		'--hero-prop-bottom-left-x:' . esc_attr($prop_bl_x) . 'px;' .
+		'--hero-prop-bottom-left-y:' . esc_attr($prop_bl_y) . 'px;' .
+		'--hero-prop-bottom-right-x:' . esc_attr($prop_br_x) . 'px;' .
+		'--hero-prop-bottom-right-y:' . esc_attr($prop_br_y) . 'px;' .
 		'}</style>';
 }
 add_action('wp_head', 'antonia_print_customizer_css');
@@ -1269,6 +1363,11 @@ function antonia_body_classes($classes)
 
 	if (get_theme_mod('antonia_hide_page_titles', false)) {
 		$classes[] = 'antonia-hide-page-titles';
+	}
+
+	// Separate class for hiding corner sketches (framed paintings)
+	if (! get_theme_mod('antonia_show_corner_sketches', true)) {
+		$classes[] = 'antonia-hide-corner-sketches';
 	}
 
 	return $classes;

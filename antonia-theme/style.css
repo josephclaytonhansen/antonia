@@ -3,11 +3,10 @@ Theme Name:  Antonia Zanolli
 Author:      Joseph Hansen
 Author URI:  https://josephhansen.dev
 Description: Official author theme for Antonia Zanolli.
-Version:     1.0.5
+Version:     1.0.6
 License:     GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: antonia-zanolli
-Tags:        author, dark, fantasy
 */
 
 /* ============================================
@@ -49,12 +48,14 @@ body {
 	-webkit-font-smoothing: antialiased;
 	overflow-x: hidden;
 	overflow-x: clip;
+	/* FIX: background-attachment:fixed causes mobile scroll jump on Android/Firefox.
+	   Use scroll instead; the tint overlay (::before) is fixed and provides the effect. */
 	background-color: var(--color-dark-bg);
 	background-image: url(background2.png);
 	background-position: 0 0;
 	background-repeat: repeat;
 	background-size: 500px;
-	background-attachment: fixed;
+	background-attachment: scroll;
 }
 
 img, picture, video, canvas, svg {
@@ -116,7 +117,7 @@ h1, h2, h3, h4, h5, h6 {
 	--transition-slow: 1.1s ease-in-out;
 	--transition-drawer: 1.3s cubic-bezier(.22, .9, .32, 1);
 
-	/* Header spacing – adjust these to move menu items closer to / farther from the author name */
+	/* Header spacing */
 	--header-menu-width: 30%;
 	--header-menu-min-width: 300px;
 
@@ -143,6 +144,20 @@ h1, h2, h3, h4, h5, h6 {
 	--antonia-series-description-size: 1rem;
 	--antonia-series-description-line-height: 1.6;
 	--antonia-series-title-transform: uppercase;
+
+	/* Hero prop position offsets (set via Customizer) */
+	--hero-prop-left-x: 0px;
+	--hero-prop-left-y: 0px;
+	--hero-prop-right-x: 0px;
+	--hero-prop-right-y: 0px;
+	--hero-prop-top-left-x: 0px;
+	--hero-prop-top-left-y: 0px;
+	--hero-prop-top-right-x: 0px;
+	--hero-prop-top-right-y: 0px;
+	--hero-prop-bottom-left-x: 0px;
+	--hero-prop-bottom-left-y: 0px;
+	--hero-prop-bottom-right-x: 0px;
+	--hero-prop-bottom-right-y: 0px;
 }
 
 /* ============================================
@@ -187,6 +202,8 @@ html {
 	background-color: var(--bg-tint);
 }
 
+/* FIX: use position:fixed so this overlay doesn't cause scroll jumps on mobile.
+   It stays put visually while the page scrolls under it. */
 body::before {
 	content: '';
 	position: fixed;
@@ -221,6 +238,21 @@ main {
 	width: 100%;
 	min-height: 100vh;
 	min-height: 100dvh;
+}
+
+/* FIX: Extend background colour to bottom of page so no gap appears when
+   scrolled all the way down. A pseudo-element on body covers any overflow. */
+body::after {
+	content: '';
+	display: block;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 200px;
+	background-color: var(--color-footer-bg);
+	z-index: -1;
+	pointer-events: none;
 }
 
 /* ============================================
@@ -336,8 +368,10 @@ header h1 {
 	font-family: var(--font-heading-main);
 	font-size: clamp(2.5rem, 8vw, var(--antonia-header-title-max-size));
 	color: var(--color-light-text);
-	margin-left: var(--antonia-menu-title-gap);
-	margin-right: var(--antonia-menu-title-gap);
+	/* FIX: use padding instead of margin so the title gains space from menus
+	   without layout flow issues that confuse the customizer gap control */
+	padding-left: var(--antonia-menu-title-gap);
+	padding-right: var(--antonia-menu-title-gap);
 }
 
 header h1 a:hover,
@@ -379,7 +413,7 @@ footer a, footer a:visited {
    ============================================ */
 
 .mobile-menu-icon {
-	display: none; /* hidden on desktop; revealed by mobile media query below */
+	display: none;
 	position: absolute;
 	left: 20px;
 	transition: all var(--transition-fast);
@@ -549,6 +583,13 @@ footer a, footer a:visited {
 	pointer-events: none;
 	z-index: 1;
 	padding-top: 80px;
+	/* FIX: restore the gradient transition from the hero into the content below */
+	background: linear-gradient(
+		to bottom,
+		transparent 0%,
+		transparent 70%,
+		var(--color-dark-text) 100%
+	);
 }
 
 .hero > * {
@@ -698,12 +739,11 @@ footer a, footer a:visited {
 	z-index: 10;
 	pointer-events: auto;
 	transition: transform 0.5s ease;
-	display: block; /* works as both div and anchor */
-	overflow: hidden; /* clips the shimmer sweep */
+	display: block;
+	overflow: hidden;
 	border-radius: 4px;
 }
 
-/* Light-glint shimmer that sweeps across on hover */
 .hero-book-cover::after {
 	content: '';
 	position: absolute;
@@ -716,7 +756,7 @@ footer a, footer a:visited {
 	);
 	transform: translateX(-120%) skewX(-15deg);
 	pointer-events: none;
-	transition: transform 0s; /* resets instantly on mouse-leave */
+	transition: transform 0s;
 }
 
 .hero-book-cover:hover::after,
@@ -734,7 +774,6 @@ footer a, footer a:visited {
 	transition: box-shadow 0.5s ease;
 }
 
-/* Golden glow on the cover when hovered / focused */
 .hero-book-cover:hover img,
 .hero-book-cover:focus-visible img {
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 28px rgba(199, 126, 63, 0.6);
@@ -746,7 +785,11 @@ footer a, footer a:visited {
 	transform: translate(-50%, -50%) rotate(4deg) scale(1.05);
 }
 
-/* Optional decorative props near the book cover */
+/* ============================================
+   HERO PROP DECORATIONS
+   Each prop has a base position plus a Customizer-controlled offset.
+   ============================================ */
+
 .hero-prop {
 	position: absolute;
 	top: 50%;
@@ -760,12 +803,45 @@ footer a, footer a:visited {
 	height: auto;
 }
 
-.hero-prop--left  { left:  calc(50% - 200px); transform: translateY(-40%) rotate(-8deg); }
-.hero-prop--right { right: calc(50% - 200px); transform: translateY(-40%) rotate(6deg); }
-.hero-prop--top-left { left: calc(50% - 80px); top: calc(50% - 170px); transform: rotate(-12deg); }
-.hero-prop--top-right { right: calc(50% - 80px); top: calc(50% - 170px); transform: rotate(11deg); }
-.hero-prop--bottom-left { left: calc(50% - 95px); top: calc(50% + 135px); transform: rotate(-10deg); }
-.hero-prop--bottom-right { right: calc(50% - 95px); top: calc(50% + 135px); transform: rotate(9deg); }
+.hero-prop--left {
+	left: calc(50% - 200px);
+	transform: translateY(-40%) rotate(-8deg)
+	           translate(var(--hero-prop-left-x), var(--hero-prop-left-y));
+}
+
+.hero-prop--right {
+	right: calc(50% - 200px);
+	transform: translateY(-40%) rotate(6deg)
+	           translate(var(--hero-prop-right-x), var(--hero-prop-right-y));
+}
+
+.hero-prop--top-left {
+	left: calc(50% - 80px);
+	top: calc(50% - 170px);
+	transform: rotate(-12deg)
+	           translate(var(--hero-prop-top-left-x), var(--hero-prop-top-left-y));
+}
+
+.hero-prop--top-right {
+	right: calc(50% - 80px);
+	top: calc(50% - 170px);
+	transform: rotate(11deg)
+	           translate(var(--hero-prop-top-right-x), var(--hero-prop-top-right-y));
+}
+
+.hero-prop--bottom-left {
+	left: calc(50% - 95px);
+	top: calc(50% + 135px);
+	transform: rotate(-10deg)
+	           translate(var(--hero-prop-bottom-left-x), var(--hero-prop-bottom-left-y));
+}
+
+.hero-prop--bottom-right {
+	right: calc(50% - 95px);
+	top: calc(50% + 135px);
+	transform: rotate(9deg)
+	           translate(var(--hero-prop-bottom-right-x), var(--hero-prop-bottom-right-y));
+}
 
 /* ============================================
    NEW CONTENT SECTION
@@ -773,6 +849,7 @@ footer a, footer a:visited {
 
 .new-content-section {
 	padding: 4rem 2rem 0;
+	/* FIX: restored gradient transition from hero to content section */
 	background: linear-gradient(to bottom, transparent 0%, var(--color-dark-text) 15%, var(--color-dark-text) 100%);
 	background-color: var(--color-dark-text);
 	color: var(--color-light-text);
@@ -842,7 +919,6 @@ footer :nth-child(odd) {
 	font-size: .7rem;
 }
 
-/* Footer nav menu (pipe-separated links) */
 .footer-nav {
 	display: inline;
 }
@@ -872,8 +948,9 @@ footer :nth-child(odd) {
 	header h1 {
 		width: 100%;
 		text-align: center;
-		margin-left: 0;
-		margin-right: 0;
+		/* FIX: clear the padding-based gap on mobile so the title stays centred */
+		padding-left: 0;
+		padding-right: 0;
 	}
 
 	.mobile-menu-icon {
@@ -886,6 +963,7 @@ footer :nth-child(odd) {
 		display: none;
 	}
 
+	/* FIX: mobile already has background-attachment:scroll on body; keep consistent */
 	html {
 		background-attachment: scroll;
 	}
@@ -928,13 +1006,18 @@ footer :nth-child(odd) {
 
 /* ============================================
    CORNER SKETCH OVERLAYS
+   FIX: changed from position:fixed to position:absolute within the hero so
+   they scroll naturally with the page and don't "jump" on Android/Firefox.
    ============================================ */
 
 .corner-sketches {
-	position: fixed;
+	/* Sits inside .hero which is position:relative, so absolute children
+	   are anchored to the hero section and scroll with it. */
+	position: absolute;
 	inset: 0;
 	pointer-events: none;
 	z-index: 9999;
+	overflow: visible;
 }
 
 .corner-sketch {
@@ -949,6 +1032,11 @@ footer :nth-child(odd) {
 .corner-sketch-bottom-left { bottom: clamp(-10px, 4vh, 45px); left: clamp(-85px, -6vw, -45px); transform: rotate(-18deg); }
 .corner-sketch-top-right   { top: clamp(260px, 36vh, 390px);  right: clamp(-95px, -7vw, -40px); transform: rotate(-8deg);  }
 .corner-sketch-bottom-right { bottom: clamp(-40px, -2vh, 10px); right: clamp(-165px, -10vw, -70px); transform: rotate(12deg); }
+
+/* Hide corner sketches class (toggled by Customizer) */
+body.antonia-hide-corner-sketches .corner-sketches {
+	display: none;
+}
 
 @media screen and (max-width: 1100px) {
 	.corner-sketch { width: 125px; }
@@ -1222,6 +1310,14 @@ footer :nth-child(odd) {
 	color: var(--color-light-text);
 }
 
+/* FIX: added a little top spacing on the "All Books" nav link */
+.single-book-nav-top {
+	margin-top: 0;
+	margin-bottom: 1.5rem;
+	padding-top: 0;
+	border-top: 0;
+}
+
 .books-series-group {
 	margin-bottom: 4rem;
 }
@@ -1332,13 +1428,6 @@ footer :nth-child(odd) {
 	max-width: 960px;
 	margin: 0 auto;
 	color: var(--color-light-text);
-}
-
-.single-book-nav-top {
-	margin-top: 0;
-	margin-bottom: 1rem;
-	padding-top: 0;
-	border-top: 0;
 }
 
 .single-book-inner {
@@ -1633,7 +1722,7 @@ footer :nth-child(odd) {
 	}
 }
 
-/* Gallery presentation for Gutenberg + classic gallery markup */
+/* Gallery */
 .post-content .wp-block-gallery,
 .post-content .blocks-gallery-grid,
 .post-content .gallery {
@@ -1665,7 +1754,6 @@ footer :nth-child(odd) {
 		animation: none !important;
 	}
 
-	/* Keep the shimmer hidden entirely for reduced-motion users */
 	.hero-book-cover::after {
 		display: none;
 	}
