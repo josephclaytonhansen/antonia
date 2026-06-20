@@ -1263,6 +1263,34 @@ function antonia_customize_register($wp_customize)
 			'none'       => __('None', 'antonia-zanolli'),
 		],
 	]);
+
+	$wp_customize->add_setting('antonia_book_card_title_size', [
+		'default'           => 1,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 0.7, 3, 1);
+		},
+	]);
+	$wp_customize->add_control('antonia_book_card_title_size', [
+		'label'       => __('Book Card Title Size (rem)', 'antonia-zanolli'),
+		'description' => __('Size of the book title shown beneath each circular cover on the Books and series pages. Default: 1. Increase to make titles larger.', 'antonia-zanolli'),
+		'section'     => 'antonia_books_style',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.05, 'min' => 0.7, 'max' => 3],
+	]);
+
+	$wp_customize->add_setting('antonia_book_card_subtitle_size', [
+		'default'           => 0.8,
+		'sanitize_callback' => function ($value) {
+			return antonia_sanitize_float_range($value, 0.6, 2, 0.8);
+		},
+	]);
+	$wp_customize->add_control('antonia_book_card_subtitle_size', [
+		'label'       => __('Book Card Subtitle Size (rem)', 'antonia-zanolli'),
+		'description' => __('Size of the "Book X of the Series" label beneath each book title. Default: 0.8.', 'antonia-zanolli'),
+		'section'     => 'antonia_books_style',
+		'type'        => 'number',
+		'input_attrs' => ['step' => 0.05, 'min' => 0.6, 'max' => 2],
+	]);
 }
 add_action('customize_register', 'antonia_customize_register');
 
@@ -1272,6 +1300,8 @@ add_action('customize_register', 'antonia_customize_register');
 function antonia_print_customizer_css()
 {
 	$series_tag_text_color      = get_theme_mod('antonia_series_tag_text_color', '#d9b992');
+	$book_card_title_size       = antonia_sanitize_float_range(get_theme_mod('antonia_book_card_title_size', 1), 0.7, 3, 1);
+	$book_card_subtitle_size    = antonia_sanitize_float_range(get_theme_mod('antonia_book_card_subtitle_size', 0.8), 0.6, 2, 0.8);
 	$series_tag_border_color    = get_theme_mod('antonia_series_tag_border_color', '#d9b992');
 	$series_tag_bg_color        = get_theme_mod('antonia_series_tag_bg_color', '#3a2b1f');
 	$book_subtitle_color        = get_theme_mod('antonia_book_subtitle_color', '#d9b992');
@@ -1347,6 +1377,8 @@ function antonia_print_customizer_css()
 		'--antonia-button-radius:' . esc_attr($button_radius_rem) . 'rem;' .
 		'--antonia-scroll-badge-bg:' . esc_attr($scroll_badge_bg) . ';' .
 		'--antonia-scroll-badge-text:' . esc_attr($scroll_badge_text) . ';' .
+		'--antonia-book-card-title-size:' . esc_attr($book_card_title_size) . 'rem;' .
+		'--antonia-book-card-subtitle-size:' . esc_attr($book_card_subtitle_size) . 'rem;' .
 		'--antonia-series-tag-text:' . esc_attr($series_tag_text_color) . ';' .
 		'--antonia-series-tag-border:' . esc_attr($series_tag_border_color) . ';' .
 		'--antonia-series-tag-bg:' . esc_attr($series_tag_bg_color) . ';' .

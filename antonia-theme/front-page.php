@@ -12,19 +12,20 @@ get_header();
 
 <main>
 
+	<!-- Corner sketches: position:absolute relative to <main> (not .hero) so they
+	     scroll with the page but are outside .hero's stacking context, keeping them
+	     above the body::before tint overlay. -->
+	<?php if (get_theme_mod('antonia_show_corner_sketches', true)) : ?>
+		<div class="corner-sketches">
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
+			<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
+		</div>
+	<?php endif; ?>
+
 	<!-- ── Hero ──────────────────────────────────────────────────────────── -->
 	<div class="hero">
-
-		<!-- Corner sketch decorations – inside .hero so they scroll with the page
-		     and don't jump on mobile (position:absolute relative to .hero). -->
-		<?php if (get_theme_mod('antonia_show_corner_sketches', true)) : ?>
-			<div class="corner-sketches">
-				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-left" />
-				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/1.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-left" />
-				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-top-right" />
-				<img src="<?php echo esc_url(get_template_directory_uri() . '/pictures/3.webp'); ?>" alt="" class="corner-sketch corner-sketch-bottom-right" />
-			</div>
-		<?php endif; ?>
 
 		<div class="hero-frame-container">
 			<div class="hero-frame-left" id="frame1">

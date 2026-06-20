@@ -3,7 +3,7 @@ Theme Name:  Antonia Zanolli
 Author:      Joseph Hansen
 Author URI:  https://josephhansen.dev
 Description: Official author theme for Antonia Zanolli.
-Version:     1.0.6
+Version:     1.0.8
 License:     GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: antonia-zanolli
@@ -137,6 +137,8 @@ h1, h2, h3, h4, h5, h6 {
 	--antonia-series-tag-border: #d9b992;
 	--antonia-series-tag-bg: #3a2b1f;
 	--antonia-book-subtitle-color: #d9b992;
+	--antonia-book-card-title-size: 1rem;
+	--antonia-book-card-subtitle-size: 0.8rem;
 	--antonia-series-heading-size: 2rem;
 	--antonia-series-heading-letterspacing: .15em;
 	--antonia-series-description-size: 1rem;
@@ -199,16 +201,14 @@ h1, h2, h3, h4, h5, h6 {
    BACKGROUND & BODY EFFECTS
    ============================================ */
 
-/* FIX (gap between header and content): html and body share the content
-   background colour so any gap between fixed header and page content
-   is filled with the correct colour instead of the raw pattern. */
+/* Gap fix: html/body use the dark background so any gap around content
+   shows the site background colour, not the raw pattern edge. */
 html {
-	background-color: var(--antonia-gradient-color);
+	background-color: var(--color-dark-bg);
 }
 
 body {
-	/* The pattern sits on body; gaps outside it fall back to html's colour above. */
-	background-color: var(--antonia-gradient-color);
+	background-color: var(--color-dark-bg);
 }
 
 body::before {
@@ -245,7 +245,8 @@ main {
 	width: 100%;
 	min-height: 100vh;
 	min-height: 100dvh;
-	/* Fill gap between fixed header and content, and between content and footer */
+	/* Fill gap between fixed header and content, and between content and footer.
+	   Uses the gradient colour so gaps match the content area. */
 	background-color: var(--antonia-gradient-color);
 }
 
@@ -577,6 +578,7 @@ footer a, footer a:visited {
 	pointer-events: none;
 	z-index: 1;
 	padding-top: 80px;
+	overflow: visible;
 	/* FIX: restore the gradient transition from the hero into the content below */
 	background: linear-gradient(
 		to bottom,
@@ -1000,8 +1002,10 @@ footer :nth-child(odd) {
 
 /* ============================================
    CORNER SKETCH OVERLAYS
-   position:absolute inside .hero (which is position:relative) so they
-   scroll naturally with the page content.
+   position:absolute inside <main> (position:relative), NOT inside .hero.
+   This keeps them outside .hero's stacking context so they sit above
+   body::before (the tint overlay at z-index:9998), and they scroll
+   naturally with the page.
    ============================================ */
 
 .corner-sketches {
@@ -1020,10 +1024,10 @@ footer :nth-child(odd) {
 	opacity: 0.95;
 }
 
-.corner-sketch-top-left    { top: clamp(210px, 28vh, 320px);  left: clamp(-140px, -8vw, -70px); transform: rotate(-12deg); }
-.corner-sketch-bottom-left { bottom: clamp(-10px, 4vh, 45px); left: clamp(-85px, -6vw, -45px); transform: rotate(-18deg); }
-.corner-sketch-top-right   { top: clamp(260px, 36vh, 390px);  right: clamp(-95px, -7vw, -40px); transform: rotate(-8deg);  }
-.corner-sketch-bottom-right { bottom: clamp(-40px, -2vh, 10px); right: clamp(-165px, -10vw, -70px); transform: rotate(12deg); }
+.corner-sketch-top-left    { top: 260px;  left: clamp(-140px, -8vw, -70px); transform: rotate(-12deg); }
+.corner-sketch-bottom-left { bottom: 20px; left: clamp(-85px, -6vw, -45px); transform: rotate(-18deg); }
+.corner-sketch-top-right   { top: 320px;  right: clamp(-95px, -7vw, -40px); transform: rotate(-8deg);  }
+.corner-sketch-bottom-right { bottom: 0px; right: clamp(-165px, -10vw, -70px); transform: rotate(12deg); }
 
 /* Toggled via Customizer > Hero Decorations > Show Framed Paintings */
 body.antonia-hide-corner-sketches .corner-sketches {
@@ -1037,10 +1041,10 @@ body.antonia-hide-hero-frames .hero-frame-container {
 
 @media screen and (max-width: 1100px) {
 	.corner-sketch { width: 125px; }
-	.corner-sketch-top-left    { top: 33vh;  left: -50px;  }
-	.corner-sketch-bottom-left { bottom: -30px; left: -40px; }
-	.corner-sketch-top-right   { top: 66vh;  right: -45px; }
-	.corner-sketch-bottom-right { bottom: -35px; right: -50px; }
+	.corner-sketch-top-left    { top: 220px;  left: -50px;  }
+	.corner-sketch-bottom-left { bottom: 20px; left: -40px; }
+	.corner-sketch-top-right   { top: 320px;  right: -45px; }
+	.corner-sketch-bottom-right { bottom: 0px; right: -50px; }
 	.hero-prop img { width: 84px; }
 	.hero-prop--left { left: calc(50% - 155px); }
 	.hero-prop--right { right: calc(50% - 155px); }
@@ -1342,12 +1346,15 @@ body.antonia-hide-hero-frames .hero-frame-container {
 	color: var(--antonia-book-subtitle-color);
 	margin-bottom: 2rem;
 	letter-spacing: .05em;
+	max-width: 640px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .books-series-subtitle p,
 .books-series-subtitle li {
-	font-size: var(--antonia-series-description-size);
-	line-height: var(--antonia-series-description-line-height);
+	font-size: var(--antonia-series-description-size) !important;
+	line-height: var(--antonia-series-description-line-height) !important;
 	color: inherit;
 	margin-bottom: 0.6rem;
 }
@@ -1403,14 +1410,14 @@ body.antonia-hide-hero-frames .hero-frame-container {
 
 .book-card-title {
 	font-family: var(--font-heading-main);
-	font-size: 1rem;
+	font-size: var(--antonia-book-card-title-size);
 	color: var(--color-light-text);
 	margin-bottom: .25rem;
 }
 
 .book-card-subtitle {
 	font-family: var(--font-text-secondary);
-	font-size: .8rem;
+	font-size: var(--antonia-book-card-subtitle-size);
 	color: var(--antonia-book-subtitle-color);
 	text-transform: uppercase;
 	letter-spacing: .05em;
