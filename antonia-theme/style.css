@@ -48,9 +48,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	overflow-x: hidden;
 	overflow-x: clip;
-	/* FIX: background-attachment:fixed causes mobile scroll jump on Android/Firefox.
-	   Use scroll instead; the tint overlay (::before) is fixed and provides the effect. */
-	background-color: var(--color-dark-bg);
+	/* background-attachment:fixed causes mobile scroll jump on Android/Firefox — use scroll. */
 	background-image: url(background2.png);
 	background-position: 0 0;
 	background-repeat: repeat;
@@ -145,6 +143,9 @@ h1, h2, h3, h4, h5, h6 {
 	--antonia-series-description-line-height: 1.6;
 	--antonia-series-title-transform: uppercase;
 
+	/* Gradient / content background colour (Customizer-driven) */
+	--antonia-gradient-color: #241C15;
+
 	/* Hero prop position offsets (set via Customizer) */
 	--hero-prop-left-x: 0px;
 	--hero-prop-left-y: 0px;
@@ -198,12 +199,18 @@ h1, h2, h3, h4, h5, h6 {
    BACKGROUND & BODY EFFECTS
    ============================================ */
 
+/* FIX (gap between header and content): html and body share the content
+   background colour so any gap between fixed header and page content
+   is filled with the correct colour instead of the raw pattern. */
 html {
-	background-color: var(--bg-tint);
+	background-color: var(--antonia-gradient-color);
 }
 
-/* FIX: use position:fixed so this overlay doesn't cause scroll jumps on mobile.
-   It stays put visually while the page scrolls under it. */
+body {
+	/* The pattern sits on body; gaps outside it fall back to html's colour above. */
+	background-color: var(--antonia-gradient-color);
+}
+
 body::before {
 	content: '';
 	position: fixed;
@@ -238,21 +245,8 @@ main {
 	width: 100%;
 	min-height: 100vh;
 	min-height: 100dvh;
-}
-
-/* FIX: Extend background colour to bottom of page so no gap appears when
-   scrolled all the way down. A pseudo-element on body covers any overflow. */
-body::after {
-	content: '';
-	display: block;
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	height: 200px;
-	background-color: var(--color-footer-bg);
-	z-index: -1;
-	pointer-events: none;
+	/* Fill gap between fixed header and content, and between content and footer */
+	background-color: var(--antonia-gradient-color);
 }
 
 /* ============================================
@@ -588,7 +582,7 @@ footer a, footer a:visited {
 		to bottom,
 		transparent 0%,
 		transparent 70%,
-		var(--color-dark-text) 100%
+		var(--antonia-gradient-color) 100%
 	);
 }
 
@@ -850,8 +844,8 @@ footer a, footer a:visited {
 .new-content-section {
 	padding: 4rem 2rem 0;
 	/* FIX: restored gradient transition from hero to content section */
-	background: linear-gradient(to bottom, transparent 0%, var(--color-dark-text) 15%, var(--color-dark-text) 100%);
-	background-color: var(--color-dark-text);
+	background: linear-gradient(to bottom, transparent 0%, var(--antonia-gradient-color) 15%, var(--antonia-gradient-color) 100%);
+	background-color: var(--antonia-gradient-color);
 	color: var(--color-light-text);
 	display: flex;
 	flex-direction: column;
@@ -1006,13 +1000,11 @@ footer :nth-child(odd) {
 
 /* ============================================
    CORNER SKETCH OVERLAYS
-   FIX: changed from position:fixed to position:absolute within the hero so
-   they scroll naturally with the page and don't "jump" on Android/Firefox.
+   position:absolute inside .hero (which is position:relative) so they
+   scroll naturally with the page content.
    ============================================ */
 
 .corner-sketches {
-	/* Sits inside .hero which is position:relative, so absolute children
-	   are anchored to the hero section and scroll with it. */
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
@@ -1033,8 +1025,13 @@ footer :nth-child(odd) {
 .corner-sketch-top-right   { top: clamp(260px, 36vh, 390px);  right: clamp(-95px, -7vw, -40px); transform: rotate(-8deg);  }
 .corner-sketch-bottom-right { bottom: clamp(-40px, -2vh, 10px); right: clamp(-165px, -10vw, -70px); transform: rotate(12deg); }
 
-/* Hide corner sketches class (toggled by Customizer) */
+/* Toggled via Customizer > Hero Decorations > Show Framed Paintings */
 body.antonia-hide-corner-sketches .corner-sketches {
+	display: none;
+}
+
+/* Toggled via Customizer > Hero Decorations > Show Framed Paintings */
+body.antonia-hide-hero-frames .hero-frame-container {
 	display: none;
 }
 

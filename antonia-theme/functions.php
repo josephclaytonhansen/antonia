@@ -729,6 +729,16 @@ function antonia_customize_register($wp_customize)
 		'section' => 'antonia_theme_colors',
 	]));
 
+	$wp_customize->add_setting('antonia_content_bg_color', [
+		'default'           => '#241C15',
+		'sanitize_callback' => 'sanitize_hex_color',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control($wp_customize, 'antonia_content_bg_color', [
+		'label'       => __('Content & Gradient Background Color', 'antonia-zanolli'),
+		'description' => __('The colour used for the gradient that fades in from the hero, the content area background, and any gaps between the header and content. Default: #241C15.', 'antonia-zanolli'),
+		'section'     => 'antonia_theme_colors',
+	]));
+
 	$wp_customize->add_setting('antonia_bg_tint_color', [
 		'default'           => '#362316',
 		'sanitize_callback' => 'sanitize_hex_color',
@@ -850,7 +860,19 @@ function antonia_customize_register($wp_customize)
 		'description' => __('Optional decorative images beside and around the homepage hero book cover. Use the offset controls to fine-tune each image\'s position.', 'antonia-zanolli'),
 	]);
 
-	// ── Framed paintings (corner sketches) – separate toggle ──
+	// ── Framed paintings (oval + rectangle dragon frames) ──
+	$wp_customize->add_setting('antonia_show_hero_frames', [
+		'default'           => true,
+		'sanitize_callback' => 'antonia_sanitize_checkbox',
+	]);
+	$wp_customize->add_control('antonia_show_hero_frames', [
+		'label'       => __('Show Framed Paintings', 'antonia-zanolli'),
+		'description' => __('Toggle the oval and rectangle framed paintings visible in the hero section.', 'antonia-zanolli'),
+		'section'     => 'antonia_hero_decor',
+		'type'        => 'checkbox',
+	]);
+
+	// ── Corner sketches toggle ──
 	$wp_customize->add_setting('antonia_show_corner_sketches', [
 		'default'           => true,
 		'sanitize_callback' => 'antonia_sanitize_checkbox',
@@ -1254,6 +1276,7 @@ function antonia_print_customizer_css()
 	$series_tag_bg_color        = get_theme_mod('antonia_series_tag_bg_color', '#3a2b1f');
 	$book_subtitle_color        = get_theme_mod('antonia_book_subtitle_color', '#d9b992');
 	$site_bg_color              = sanitize_hex_color(get_theme_mod('antonia_site_bg_color', '#1f1b15')) ?: '#1f1b15';
+	$content_bg_color           = sanitize_hex_color(get_theme_mod('antonia_content_bg_color', '#241C15')) ?: '#241C15';
 	$bg_tint_color              = sanitize_hex_color(get_theme_mod('antonia_bg_tint_color', '#362316')) ?: '#362316';
 	$main_text_color            = sanitize_hex_color(get_theme_mod('antonia_main_text_color', '#fcecd8')) ?: '#fcecd8';
 	$hover_accent_color         = sanitize_hex_color(get_theme_mod('antonia_hover_accent_color', '#c77e3f')) ?: '#c77e3f';
@@ -1303,6 +1326,7 @@ function antonia_print_customizer_css()
 	echo '<style id="antonia-customizer-vars">:root{' .
 		'--bg-tint:' . esc_attr($bg_tint_color) . ';' .
 		'--color-dark-bg:' . esc_attr($site_bg_color) . ';' .
+		'--antonia-gradient-color:' . esc_attr($content_bg_color) . ';' .
 		'--color-light-text:' . esc_attr($main_text_color) . ';' .
 		'--color-hover-accent:' . esc_attr($hover_accent_color) . ';' .
 		'--color-site-title-hover:' . esc_attr($site_title_hover_color) . ';' .
@@ -1365,7 +1389,12 @@ function antonia_body_classes($classes)
 		$classes[] = 'antonia-hide-page-titles';
 	}
 
-	// Separate class for hiding corner sketches (framed paintings)
+	// Hide framed paintings (oval + rectangle frames in hero)
+	if (! get_theme_mod('antonia_show_hero_frames', true)) {
+		$classes[] = 'antonia-hide-hero-frames';
+	}
+
+	// Hide corner sketches
 	if (! get_theme_mod('antonia_show_corner_sketches', true)) {
 		$classes[] = 'antonia-hide-corner-sketches';
 	}
