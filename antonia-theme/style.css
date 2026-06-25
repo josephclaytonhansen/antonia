@@ -3,7 +3,7 @@ Theme Name:  Antonia Zanolli
 Author:      Joseph Hansen
 Author URI:  https://josephhansen.dev
 Description: Official author theme for Antonia Zanolli.
-Version:     1.0.8
+Version:     1.0.9
 License:     GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: antonia-zanolli
@@ -201,10 +201,12 @@ h1, h2, h3, h4, h5, h6 {
    BACKGROUND & BODY EFFECTS
    ============================================ */
 
-/* Gap fix: html/body use the dark background so any gap around content
-   shows the site background colour, not the raw pattern edge. */
+/* Gap fix: html/body use the gradient/content colour so any gap at the
+   bottom of the page blends with the content area and footer, not the
+   background texture. The hero area stays transparent (no background on
+   <main>) so the body texture and tint show through correctly there. */
 html {
-	background-color: var(--color-dark-bg);
+	background-color: var(--antonia-gradient-color);
 }
 
 body {
@@ -245,9 +247,6 @@ main {
 	width: 100%;
 	min-height: 100vh;
 	min-height: 100dvh;
-	/* Fill gap between fixed header and content, and between content and footer.
-	   Uses the gradient colour so gaps match the content area. */
-	background-color: var(--antonia-gradient-color);
 }
 
 /* ============================================
@@ -1002,18 +1001,15 @@ footer :nth-child(odd) {
 
 /* ============================================
    CORNER SKETCH OVERLAYS
-   position:absolute inside <main> (position:relative), NOT inside .hero.
-   This keeps them outside .hero's stacking context so they sit above
-   body::before (the tint overlay at z-index:9998), and they scroll
-   naturally with the page.
+   position:fixed so they stay anchored to the viewport at all times,
+   matching the 1.0.5 behaviour that worked correctly.
    ============================================ */
 
 .corner-sketches {
-	position: absolute;
+	position: fixed;
 	inset: 0;
 	pointer-events: none;
 	z-index: 9999;
-	overflow: visible;
 }
 
 .corner-sketch {
@@ -1024,10 +1020,10 @@ footer :nth-child(odd) {
 	opacity: 0.95;
 }
 
-.corner-sketch-top-left    { top: 260px;  left: clamp(-140px, -8vw, -70px); transform: rotate(-12deg); }
-.corner-sketch-bottom-left { bottom: 20px; left: clamp(-85px, -6vw, -45px); transform: rotate(-18deg); }
-.corner-sketch-top-right   { top: 320px;  right: clamp(-95px, -7vw, -40px); transform: rotate(-8deg);  }
-.corner-sketch-bottom-right { bottom: 0px; right: clamp(-165px, -10vw, -70px); transform: rotate(12deg); }
+.corner-sketch-top-left    { top: clamp(210px, 28vh, 320px);  left: clamp(-140px, -8vw, -70px); transform: rotate(-12deg); }
+.corner-sketch-bottom-left { bottom: clamp(-10px, 4vh, 45px); left: clamp(-85px, -6vw, -45px); transform: rotate(-18deg); }
+.corner-sketch-top-right   { top: clamp(260px, 36vh, 390px);  right: clamp(-95px, -7vw, -40px); transform: rotate(-8deg);  }
+.corner-sketch-bottom-right { bottom: clamp(-40px, -2vh, 10px); right: clamp(-165px, -10vw, -70px); transform: rotate(12deg); }
 
 /* Toggled via Customizer > Hero Decorations > Show Framed Paintings */
 body.antonia-hide-corner-sketches .corner-sketches {
@@ -1041,10 +1037,10 @@ body.antonia-hide-hero-frames .hero-frame-container {
 
 @media screen and (max-width: 1100px) {
 	.corner-sketch { width: 125px; }
-	.corner-sketch-top-left    { top: 220px;  left: -50px;  }
-	.corner-sketch-bottom-left { bottom: 20px; left: -40px; }
-	.corner-sketch-top-right   { top: 320px;  right: -45px; }
-	.corner-sketch-bottom-right { bottom: 0px; right: -50px; }
+	.corner-sketch-top-left    { top: 33vh;  left: -50px;  }
+	.corner-sketch-bottom-left { bottom: -30px; left: -40px; }
+	.corner-sketch-top-right   { top: 66vh;  right: -45px; }
+	.corner-sketch-bottom-right { bottom: -35px; right: -50px; }
 	.hero-prop img { width: 84px; }
 	.hero-prop--left { left: calc(50% - 155px); }
 	.hero-prop--right { right: calc(50% - 155px); }
